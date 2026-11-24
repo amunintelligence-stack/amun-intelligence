@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: amun-intelligence
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: ACI_DB_PATH
+        value: /app/data/aci.db

@@ -1,0 +1,14 @@
+# pg_pinecone و pg_vectorsearch — محركا بحث متجهين داخل Postgres نفسه
+
+## pg_pinecone v0.11.0 (صدر 2026-10-27، أول إصدار)
+- **ما الذي تغيّر:** إضافة Postgres مفتوحة المصدر (Apache 2.0) من Pinecone تجلب محرك بحث الإنتاج الخاص بها إلى أعمدة pgvector الموجودة — بلا تغييرات في الجداول/الاستعلامات. ثلاثة محركات لكل جدول: `native` (يشغّل محرك Pinecone داخل Postgres، ولا يتصل بـ Pinecone أبدًا)، `remote` (يفرغ إلى فهرس Pinecone عندما يتجاوز الجدول خادمًا واحدًا)، إضافة إلى بحث نصي كامل/هجين. يتطلب PostgreSQL 17 أو 18 + مستخدم خارق + pgvector. معيار موزّع: 1M × متجهات 768 بُعدًا ← فهرس native بحجم 136MB مقابل 2.0GB لـ HNSW-halfvec / 4.1GB للمتجهات الكاملة (أرقام المورّد، غير متحقق منها مستقلًا). نُشرت وثائق ومرجع SQL ودليل تشغيل ودليل استرداد؛ Pinecone تصونه وتراجع كل PR.
+- **لماذا يهم ACI:** RAG الحالي في ACI يعيش في Postgres (TF-IDF اليوم، pgvector 0.8.7 متتبَّع). pg_pinecone مسار ترقية مستقبلي معقول لطبقة Postgres — فهارس أصغر بكثير وبحث هجين دون مغادرة Postgres أو اعتماد قاعدة بيانات ثانية — ومحرك `remote` مخرج طوارئ إلى Pinecone المدارة. لكنه إصدار أول v0.11، ويحتاج PG 17/18 + مستخدم خارق، ومعياره الرئيسي من المورّد.
+- **المصادر:** https://docs.pinecone.io/guides/pg-pinecone/overview — https://docs.pinecone.io/release-notes/2026 — https://www.unite.ai/pinecone-releases-pg-pinecone-an-open-source-postgres-search-extension/
+- **الإجراء: watch.** **السجل:** أضف `pg_pinecone` — نوع vector-db/postgres-extension، الحالة watch (v0.11.0، أول إصدار، 2026-10-27)، المفتاح لا (native) / نعم (remote) — «PG 17/18 + مستخدم خارق؛ أعد التقييم بعد 1.0 ومعايير مستقلة».
+
+## pg_vectorsearch 0.1.0 — فهرس PRISM من Tiger Data (ألفا)
+- **التاريخ:** 2026-10-13 (v0.1.0، ألفا).
+- **ما الذي تغيّر:** أصدرت Tiger Data (Timescale سابقًا) إضافة Postgres مفتوحة المصدر (رخصة PostgreSQL) بفهرس PRISM — أقسام مضغوطة بدل رسم HNSW — مبنية مباشرة فوق أعمدة pgvector الموجودة. معيار المورّد: 100M متجه مفهرسة في 1h40m على 128 GiB RAM، استعلامات 21ms عند استدعاء 99% (أرقام المورّد). القيود: ألفا («للاختبار لا للإنتاج»)، تحتاج Postgres 18، حد أقصى 1,968 بُعدًا، الحذف يصبح tombstones حتى إعادة بناء الفهرس، وحتى 2026-10-17 ليست في أي من قوائم إضافات Postgres المدارة الثماني الكبرى (RDS، Cloud SQL، Azure، Supabase، Neon…).
+- **لماذا يهم ACI:** خيار متجه آخر أصلي في Postgres في نفس فضاء تصميم pg_pinecone، لكنه أضعف صراحة الآن (ألفا، PG 18 فقط، حد أبعاد). ذو صلة فقط كبديل مستقبلي إن احتاجت طبقة RAG في Postgres بناء فهرس جماعي أسرع يومًا.
+- **المصادر:** https://github.com/timescale/pg_vectorsearch/releases/tag/v0.1.0 — https://stackness.dev/blog/pg-vectorsearch-vs-pgvector-prism-vs-hnsw-and-the-postgres-vector-slot
+- **الإجراء: ignore الآن** (أعد النظر إن بلغ beta / توفرًا مُدارًا). **السجل:** أضف `pg_vectorsearch` — نوع vector-db/postgres-extension، الحالة watch/alpha، بلا مفتاح — «فهرس PRISM، v0.1.0 ألفا 2026-10-13، PG 18 فقط، ≤1968 بُعدًا؛ غير جاهز للإنتاج».

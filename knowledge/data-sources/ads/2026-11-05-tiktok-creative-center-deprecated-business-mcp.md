@@ -1,0 +1,8 @@
+# TikTok Creative Center — نقاط النهاية الداخلية مهملة في 27 أكتوبر؛ TikTok for Business MCP موجود
+
+- **التاريخ:** **2026-10-27** (لوحظ الإهمال)؛ مؤكد في فحوص بتاريخ 2026-11-02.
+- **ما الذي تغيّر:** شحنت TikTok تطبيق Creative Center جديدًا ونقاط نهاية `creative_radar_api` الداخلية القديمة تعيد الآن `code 0, data null, msg deprecated` لبيانات الاتجاهات — **مسار الكشط غير الرسمي لاتجاهات Creative Center ميت**. روابط `/business/creativecenter/inspiration/popular/` القديمة تعيد التوجيه. فقط نقاط نهاية Top Ads على التطبيق القديم بقيت تعمل. **Commercial Content API** الرسمي يبقى للاتحاد الأوروبي/المنطقة الاقتصادية الأوروبية/المملكة المتحدة/سويسرا فقط، ~10 سجلات/استدعاء (وثائق حُدّثت 27 أغسطس / 1 سبتمبر 2026)، مقيد بأغراض بحثية؛ إبداعات Top Ads مائية وغير قابلة للتنزيل. بشكل منفصل، **TikTok for Business MCP** موجود: واجهة Ads API مغلفة كأدوات MCP، سجّل دخول بحساب TikTok for Business، **بلا بيانات اعتماد مطور**.
+- **لماذا يهم ACI:** يؤكد ويقوّي اكتشاف 3 نوفمبر «بلا Creative Center API» — حتى المسار غير الرسمي ميت الآن، فاستخبارات TikTok الإبداعية يجب أن تأتي من Commercial Content API الرسمي (الاتحاد الأوروبي فقط) أو واجهة المكتبة العامة. Business MCP مسار جديد منخفض الاحتكاك لبيانات TikTok *من جانب المعلن* (حملاتك فقط).
+- **المصادر:** https://adextract.co/blog/tiktok-creative-center-api — https://www.admapix.com/blog/ad-intelligence/how-to-download-tiktok-ads (حُدّث 2026-11-02) — https://tokconnect.com/guides/tiktok-api/ (أُعيد فحصه 5 أكتوبر 2026)
+- **الإجراء: watch**
+- **السجل:** أضف `tiktok-for-business-mcp` — نوع ads-mcp، الحالة watch، بلا مفتاح (تسجيل دخول TikTok for Business) — «Ads API كأدوات MCP؛ بيانات جانب المعلن فقط، بلا بيانات Creative Center»

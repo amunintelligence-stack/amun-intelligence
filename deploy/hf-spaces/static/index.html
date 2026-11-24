@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMUN Corporate Intelligence — استخبارات من المستقبل</title>
+<meta name="description" content="AMUN Corporate Intelligence (ACI) — استخبارات الشركات، OSINT، ذكاء اصطناعي متعدد الوكلاء، ودعم القرار.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ═══════════════ CORE ═══════════════ */
+:root{
+  --bg:#050508; --bg2:#0a0a12;
+  --gold:#d4af37; --gold-l:#ffe08a; --gold-d:#8a6d1f;
+  --cyan:#57e6f2;
+  --text:#eae7df; --muted:#95917f;
+  --line:rgba(212,175,55,.18); --glass:rgba(255,255,255,.03);
+  --orb:'Orbitron',monospace; --font:'Cairo',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.8}
+::selection{background:var(--gold);color:#0a0a0a}
+::-webkit-scrollbar{width:9px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--gold),var(--gold-d));border-radius:4px}
+img{max-width:100%}
+a{color:inherit;text-decoration:none}
+.en{font-family:var(--orb);letter-spacing:2px}
+.gold-text{background:linear-gradient(110deg,#f6e27a 10%,#d4af37 45%,#fff3c4 60%,#b8860b 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ═══════════════ BACKGROUND LAYERS ═══════════════ */
+#network{position:fixed;inset:0;z-index:-3}
+.grid-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background-image:linear-gradient(rgba(212,175,55,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,.05) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(ellipse at 50% 30%,#000 10%,transparent 80%);
+  mask-image:radial-gradient(ellipse at 50% 30%,#000 10%,transparent 80%)}
+.vignette{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 0%,rgba(212,175,55,.07),transparent 55%),
+             radial-gradient(ellipse at 50% 120%,rgba(87,230,242,.04),transparent 50%)}
+.scanlines{position:fixed;inset:0;z-index:9996;pointer-events:none;opacity:.35;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.14) 3px 4px)}
+
+/* ═══════════════ PRELOADER ═══════════════ */
+#preloader{position:fixed;inset:0;z-index:10000;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;transition:opacity .7s,visibility .7s}
+#preloader.done{opacity:0;visibility:hidden}
+.pre-ring{width:130px;height:130px;border-radius:50%;position:relative;display:grid;place-items:center}
+.pre-ring::before,.pre-ring::after{content:'';position:absolute;inset:0;border-radius:50%;border:1px solid var(--line)}
+.pre-ring::after{inset:-10px;border:1px dashed rgba(212,175,55,.4);border-top-color:var(--gold);animation:spin 1.6s linear infinite}
+.pre-ring img{width:100%;height:100%;border-radius:50%;object-fit:cover;box-shadow:0 0 40px rgba(212,175,55,.35)}
+.pre-title{font-family:var(--orb);font-size:14px;letter-spacing:6px;color:var(--gold)}
+.pre-bar{width:min(340px,70vw);height:2px;background:rgba(212,175,55,.15);overflow:hidden}
+.pre-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold-l));box-shadow:0 0 12px var(--gold);transition:width .3s}
+.pre-txt{font-family:var(--orb);font-size:10px;letter-spacing:3px;color:var(--muted)}
+.pre-txt::after{content:'▌';animation:blink 1s steps(2) infinite;color:var(--gold)}
+
+/* ═══════════════ CURSOR ═══════════════ */
+.cursor-dot,.cursor-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:9999;border-radius:50%;transform:translate(-50%,-50%)}
+.cursor-dot{width:6px;height:6px;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+.cursor-ring{width:34px;height:34px;border:1px solid rgba(212,175,55,.55);transition:width .25s,height .25s,border-color .25s}
+.cursor-ring.hovering{width:58px;height:58px;border-color:var(--cyan)}
+@media(pointer:coarse){.cursor-dot,.cursor-ring{display:none}}
+@media(pointer:fine){body{cursor:none}a,button{cursor:none}}
+
+/* ═══════════════ NAV ═══════════════ */
+#nav{position:fixed;top:0;right:0;left:0;z-index:9990;padding:18px 5%;display:flex;align-items:center;justify-content:space-between;transition:.4s}
+#nav.scrolled{padding:10px 5%;background:rgba(6,6,10,.85);backdrop-filter:blur(18px);border-bottom:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.nav-brand{display:flex;align-items:center;gap:14px}
+.nav-logo{width:46px;height:46px;border-radius:50%;position:relative;flex:none}
+.nav-logo img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:1px solid var(--line);box-shadow:0 0 18px rgba(212,175,55,.3)}
+.nav-logo::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px dashed rgba(212,175,55,.35);border-top-color:var(--gold);animation:spin 7s linear infinite}
+.nav-name{font-family:var(--orb);font-size:15px;font-weight:900;color:var(--gold);letter-spacing:3px;line-height:1.2}
+.nav-name small{display:block;font-size:8px;letter-spacing:5px;color:var(--muted);font-weight:500}
+.nav-links{display:flex;gap:6px;list-style:none;align-items:center}
+.nav-links a{padding:8px 15px;font-size:14px;font-weight:600;color:var(--muted);position:relative;transition:.3s;border-radius:2px}
+.nav-links a::after{content:'';position:absolute;bottom:0;right:50%;transform:translateX(50%);width:0;height:1px;background:var(--gold);transition:.3s;box-shadow:0 0 8px var(--gold)}
+.nav-links a:hover,.nav-links a.active{color:var(--gold-l)}
+.nav-links a:hover::after,.nav-links a.active::after{width:70%}
+.nav-cta{padding:9px 22px!important;border:1px solid var(--gold)!important;color:var(--gold)!important;font-size:13px!important}
+.nav-cta:hover{background:rgba(212,175,55,.12)}
+.nav-cta::after{display:none}
+#burger{display:none;background:none;border:1px solid var(--line);color:var(--gold);width:44px;height:44px;font-size:18px;border-radius:2px}
+
+/* ═══════════════ HERO ═══════════════ */
+.hero{min-height:100vh;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:130px 5% 80px;overflow:hidden}
+.hero-floor{position:absolute;bottom:-45%;left:-60%;width:220%;height:70%;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(212,175,55,.12) 0 1px,transparent 1px 90px),
+             repeating-linear-gradient(0deg,rgba(212,175,55,.12) 0 1px,transparent 1px 90px);
+  transform:perspective(600px) rotateX(62deg);
+  -webkit-mask-image:linear-gradient(transparent,#000 55%);mask-image:linear-gradient(transparent,#000 55%);
+  animation:floor 9s linear infinite}
+@keyframes floor{to{background-position:0 0,0 90px}}
+.hero-badge{font-family:var(--orb);font-size:clamp(9px,1.4vw,12px);letter-spacing:5px;color:var(--gold);border:1px solid var(--line);padding:8px 22px;background:rgba(212,175,55,.05);position:relative;margin-bottom:38px}
+.hero-badge::before,.hero-badge::after{content:'';position:absolute;top:-1px;bottom:-1px;width:6px;border:1px solid var(--gold)}
+.hero-badge::before{right:-8px;border-left:none}.hero-badge::after{left:-8px;border-right:none}
+.logo-orbit{width:min(280px,56vw);aspect-ratio:1;position:relative;margin-bottom:42px}
+.logo-orbit::before{content:'';position:absolute;inset:-12%;border-radius:50%;background:radial-gradient(circle,rgba(212,175,55,.22),transparent 62%);animation:pulse 4.5s ease-in-out infinite}
+.or{position:absolute;border-radius:50%}
+.or-1{inset:0;border:1px dashed rgba(212,175,55,.4);animation:spin 34s linear infinite}
+.or-2{inset:11%;border:1px solid rgba(212,175,55,.14);animation:spinRev 48s linear infinite}
+.or-2 .dot{position:absolute;top:-4px;left:50%;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px var(--gold)}
+.or-2 .dot.d2{top:auto;bottom:-4px;background:var(--cyan);box-shadow:0 0 12px var(--cyan)}
+.or-3{inset:22%;border:1px solid transparent;border-top-color:var(--gold);border-left-color:rgba(212,175,55,.5);animation:spin 5s linear infinite;filter:drop-shadow(0 0 6px rgba(212,175,55,.7))}
+.logo-core{position:absolute;inset:15%;border-radius:50%;overflow:hidden;border:1px solid rgba(212,175,55,.5);box-shadow:0 0 70px rgba(212,175,55,.35),inset 0 0 50px rgba(0,0,0,.85);z-index:2;animation:float 7s ease-in-out infinite}
+.logo-core img{width:100%;height:100%;object-fit:cover;display:block}
+.hero h1{font-size:clamp(30px,5.4vw,58px);font-weight:900;line-height:1.4;margin-bottom:14px}
+.hero-sub{max-width:640px;color:var(--muted);font-size:clamp(14px,1.6vw,17px);margin-bottom:26px}
+.type-line{font-family:var(--orb);font-size:clamp(12px,1.8vw,17px);letter-spacing:3px;color:var(--cyan);direction:ltr;margin-bottom:30px;min-height:1.6em}
+.type-line .prompt{color:var(--gold)}
+.caret{display:inline-block;width:9px;height:1.2em;background:var(--cyan);vertical-align:text-bottom;animation:blink 1s steps(2) infinite;margin-right:3px}
+.motto{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+.motto span{font-family:var(--orb);font-size:11px;letter-spacing:3px;color:var(--gold);border:1px solid var(--line);padding:6px 16px;background:var(--glass)}
+.hero-ctas{display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+.btn{position:relative;display:inline-flex;align-items:center;gap:10px;padding:15px 38px;font-family:var(--font);font-weight:800;font-size:15px;letter-spacing:1px;border:1px solid var(--gold);color:var(--gold-l);background:transparent;overflow:hidden;transition:.35s;z-index:1}
+.btn::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(212,175,55,.3),transparent);transform:translateX(110%);transition:.55s;z-index:-1}
+.btn:hover::before{transform:translateX(-110%)}
+.btn:hover{box-shadow:0 0 30px rgba(212,175,55,.3);color:#fff}
+.btn.solid{background:linear-gradient(120deg,#a87f16,#d4af37);color:#0a0a08;border-color:transparent}
+.btn.solid:hover{box-shadow:0 0 40px rgba(212,175,55,.5);color:#000}
+.scroll-hint{position:absolute;bottom:26px;right:50%;transform:translateX(50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:11px}
+.scroll-hint .wheel{width:22px;height:36px;border:1px solid var(--gold);border-radius:12px;position:relative}
+.scroll-hint .wheel::after{content:'';position:absolute;top:6px;right:50%;transform:translateX(50%);width:4px;height:8px;border-radius:3px;background:var(--gold);animation:wheel 1.6s ease infinite}
+@keyframes wheel{0%{opacity:1;top:6px}70%{opacity:0;top:20px}100%{opacity:0}}
+.hud-side{position:absolute;font-family:var(--orb);font-size:9px;letter-spacing:2px;color:rgba(212,175,55,.45);writing-mode:vertical-rl}
+.hud-side.right{right:3%;top:26%}
+.hud-side.left{left:3%;bottom:26%}
+
+/* ═══════════════ TICKER ═══════════════ */
+.ticker{border-block:1px solid var(--line);background:rgba(212,175,55,.03);overflow:hidden;padding:13px 0;position:relative}
+.ticker::before,.ticker::after{content:'';position:absolute;top:0;bottom:0;width:120px;z-index:2}
+.ticker::before{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
+.ticker::after{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.t-track{display:inline-flex;white-space:nowrap;direction:ltr;animation:tick 30s linear infinite}
+.t-set{display:inline-flex;flex:none;align-items:center}
+.t-set span{font-family:var(--orb);font-size:12px;letter-spacing:4px;color:var(--muted);padding:0 28px}
+.t-set i{color:var(--gold);font-size:9px}
+@keyframes tick{to{transform:translateX(50%)}}
+.ticker:hover .t-track{animation-play-state:paused}
+
+/* ═══════════════ SECTIONS ═══════════════ */
+section{padding:110px 5%;position:relative}
+.container{max-width:1200px;margin:0 auto}
+.sec-head{text-align:center;margin-bottom:70px}
+.sec-tag{font-family:var(--orb);font-size:11px;letter-spacing:6px;color:var(--gold);display:inline-flex;align-items:center;gap:14px;margin-bottom:16px}
+.sec-tag::before,.sec-tag::after{content:'';width:44px;height:1px;background:linear-gradient(90deg,transparent,var(--gold));display:inline-block}
+.sec-tag::after{background:linear-gradient(90deg,var(--gold),transparent)}
+.sec-title{font-size:clamp(26px,3.6vw,42px);font-weight:900}
+.sec-desc{color:var(--muted);max-width:620px;margin:14px auto 0;font-size:15px}
+
+.reveal{opacity:0;transform:translateY(45px);transition:opacity .9s cubic-bezier(.2,.65,.25,1),transform .9s cubic-bezier(.2,.65,.25,1)}
+.reveal.visible{opacity:1;transform:none}
+
+.card{position:relative;background:linear-gradient(165deg,rgba(255,255,255,.045),rgba(255,255,255,.008));border:1px solid var(--line);backdrop-filter:blur(8px);padding:30px;border-radius:3px;transition:.45s;overflow:hidden}
+.card::after{content:'';position:absolute;top:0;right:8%;left:8%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:.45s}
+.card:hover{transform:translateY(-8px);border-color:rgba(212,175,55,.5);box-shadow:0 26px 50px -18px rgba(212,175,55,.28)}
+.card:hover::after{opacity:1}
+.card .num{position:absolute;top:14px;left:18px;font-family:var(--orb);font-size:44px;font-weight:900;color:rgba(212,175,55,.09)}
+.icon-box{width:54px;height:54px;display:grid;place-items:center;border:1px solid rgba(212,175,55,.35);background:rgba(212,175,55,.06);color:var(--gold);font-size:21px;margin-bottom:20px;position:relative;transition:.4s}
+.icon-box::after{content:'';position:absolute;inset:5px;border:1px dashed rgba(212,175,55,.22)}
+.card:hover .icon-box{transform:rotate(-6deg) scale(1.08);box-shadow:0 0 22px rgba(212,175,55,.3)}
+.card h3{font-size:19px;font-weight:800;margin-bottom:4px}
+.card .en-sub{font-family:var(--orb);font-size:10px;letter-spacing:2px;color:var(--cyan);margin-bottom:12px}
+.card p{color:var(--muted);font-size:14px}
+
+/* ═══════════════ ABOUT + STATS ═══════════════ */
+.about-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:60px;align-items:center}
+.about-text h3{font-size:clamp(22px,2.6vw,32px);font-weight:900;margin-bottom:20px}
+.about-text p{color:var(--muted);margin-bottom:16px;font-size:15px}
+.about-quote{border-right:3px solid var(--gold);padding:14px 20px;background:rgba(212,175,55,.05);color:var(--gold-l);font-weight:700;margin-top:22px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.stat{border:1px solid var(--line);background:var(--glass);padding:28px 20px;text-align:center;position:relative;overflow:hidden}
+.stat::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(212,175,55,.12),transparent 70%)}
+.stat b{font-family:var(--orb);font-size:clamp(30px,3.4vw,44px);font-weight:900;display:block}
+.stat span{color:var(--muted);font-size:13px}
+
+/* ═══════════════ VISION/MISSION ═══════════════ */
+.vm-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.vm-card{padding:40px}
+.vm-card h3{display:flex;align-items:center;gap:14px;font-size:23px;font-weight:900;margin-bottom:18px}
+.vm-card h3 i{color:var(--gold);font-size:26px}
+.vm-card p{color:var(--muted);font-size:15px}
+.mission-list{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px;list-style:none}
+.mission-list li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:#c9c5b5}
+.mission-list i{color:var(--gold);font-size:11px;margin-top:7px;flex:none}
+
+/* ═══════════════ OBJECTIVES ═══════════════ */
+.obj-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
+.obj{padding:26px 20px;min-height:230px;display:flex;flex-direction:column}
+.obj .num{font-size:34px}
+.obj h4{font-size:16.5px;font-weight:800;margin:14px 0 2px}
+.obj .en-sub{font-size:9px}
+.obj p{font-size:13px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tags span{font-size:11px;color:var(--gold-l);border:1px solid var(--line);padding:3px 10px;background:rgba(212,175,55,.05)}
+
+/* ═══════════════ SERVICES ═══════════════ */
+.srv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.srv-grid .card{padding:28px 26px;cursor:default}
+.srv-en{font-family:var(--orb);font-size:9.5px;letter-spacing:2px;color:var(--cyan)}
+
+/* ═══════════════ CYCLE (RADAR) ═══════════════ */
+.cycle-wrap{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+.radar{position:relative;width:min(500px,88vw);aspect-ratio:1;margin:0 auto;padding:6%}
+.r-base{position:absolute;border:1px solid rgba(212,175,55,.22);border-radius:50%;inset:0}
+.r-base.b2{inset:16%}.r-base.b3{inset:32%}
+.r-cross-h,.r-cross-v{position:absolute;background:rgba(212,175,55,.12)}
+.r-cross-h{top:50%;left:6%;right:6%;height:1px}
+.r-cross-v{left:50%;top:6%;bottom:6%;width:1px}
+.r-sweep{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(212,175,55,.4),rgba(212,175,55,.08) 55deg,transparent 70deg);animation:spin 5s linear infinite}
+.r-hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:27%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle,rgba(212,175,55,.28),rgba(8,8,14,.96) 72%);border:1px solid var(--gold);box-shadow:0 0 45px rgba(212,175,55,.35);z-index:4}
+.r-hub b{font-family:var(--orb);font-size:clamp(10px,1.4vw,13px);color:var(--gold-l);letter-spacing:1px}
+.r-hub small{display:block;font-size:10px;color:var(--muted)}
+.cnode{position:absolute;transform:translate(-50%,-50%);background:none;border:none;z-index:5;font-family:var(--font);color:var(--text)}
+.cnode .cn-dot{width:46px;height:46px;margin:0 auto;border-radius:50%;display:grid;place-items:center;font-family:var(--orb);font-weight:700;font-size:14px;color:var(--muted);background:#0b0b12;border:1px solid var(--line);transition:.35s;box-shadow:0 0 0 rgba(212,175,55,0)}
+.cnode .cn-label{margin-top:7px;font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap;transition:.35s}
+.cnode:hover .cn-dot{border-color:var(--gold);color:var(--gold-l)}
+.cnode.active .cn-dot{border-color:var(--gold);color:#0a0a08;background:linear-gradient(140deg,#f0d060,#d4af37);box-shadow:0 0 28px rgba(212,175,55,.75);transform:scale(1.16)}
+.cnode.active .cn-label{color:var(--gold-l)}
+.cycle-panel{border:1px solid var(--line);background:linear-gradient(165deg,rgba(255,255,255,.04),rgba(255,255,255,.005));padding:36px;position:relative}
+.cp-corner{position:absolute;width:16px;height:16px;opacity:.75}
+.cp-corner.tl{top:8px;right:8px;border-top:2px solid var(--gold);border-right:2px solid var(--gold)}
+.cp-corner.tr{top:8px;left:8px;border-top:2px solid var(--gold);border-left:2px solid var(--gold)}
+.cp-corner.bl{bottom:8px;right:8px;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold)}
+.cp-corner.br{bottom:8px;left:8px;border-bottom:2px solid var(--gold);border-left:2px solid var(--gold)}
+.cp-head{display:flex;justify-content:space-between;align-items:center;font-family:var(--orb);font-size:11px;letter-spacing:3px;color:var(--gold);margin-bottom:18px}
+.cp-en{color:var(--cyan);font-size:13px}
+.cycle-panel h3{font-size:26px;font-weight:900;margin-bottom:12px}
+.cp-desc{color:var(--muted);font-size:15px;min-height:78px}
+.cp-bar{height:3px;background:rgba(212,175,55,.14);margin:24px 0 18px;overflow:hidden}
+.cp-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--gold-l));box-shadow:0 0 10px var(--gold)}
+.cp-ctrl{display:flex;gap:10px}
+.cp-ctrl button{width:44px;height:44px;background:none;border:1px solid var(--line);color:var(--gold);font-size:14px;transition:.3s}
+.cp-ctrl button:hover{border-color:var(--gold);background:rgba(212,175,55,.1);box-shadow:0 0 14px rgba(212,175,55,.25)}
+
+/* ═══════════════ STATEMENT ═══════════════ */
+.statement{text-align:center;background:linear-gradient(180deg,transparent,rgba(212,175,55,.035),transparent)}
+.glitch{position:relative;font-family:var(--orb);font-weight:900;font-size:clamp(21px,4.6vw,52px);letter-spacing:2px;direction:ltr;color:var(--text);display:inline-block}
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;inset:0;overflow:hidden}
+.glitch::before{color:var(--cyan);animation:gl1 3.2s infinite steps(2)}
+.glitch::after{color:var(--gold);animation:gl2 3.2s infinite steps(2)}
+@keyframes gl1{0%,92%{transform:none;clip-path:inset(0 0 100% 0)}94%{transform:translate(-3px,-2px);clip-path:inset(0 0 55% 0)}96%{transform:translate(3px,1px);clip-path:inset(40% 0 20% 0)}98%{transform:translate(-2px,2px);clip-path:inset(70% 0 5% 0)}100%{transform:none;clip-path:inset(0 0 100% 0)}}
+@keyframes gl2{0%,92%{transform:none;clip-path:inset(100% 0 0 0)}94%{transform:translate(3px,2px);clip-path:inset(50% 0 10% 0)}96%{transform:translate(-3px,-1px);clip-path:inset(10% 0 65% 0)}98%{transform:translate(2px,-2px);clip-path:inset(5% 0 80% 0)}100%{transform:none;clip-path:inset(100% 0 0 0)}}
+.statement p{color:var(--muted);max-width:560px;margin:20px auto 50px;font-size:16px}
+.chain{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;direction:ltr}
+.chain-node{border:1px solid var(--line);background:var(--glass);padding:16px 20px;min-width:120px;text-align:center;transition:.4s;position:relative}
+.chain-node b{font-family:var(--orb);font-size:12px;letter-spacing:2px;display:block;color:var(--text)}
+.chain-node small{font-size:12px;color:var(--muted)}
+.chain-node.active{border-color:var(--gold);box-shadow:0 0 26px rgba(212,175,55,.35);transform:translateY(-5px)}
+.chain-node.active b{color:var(--gold-l)}
+.chain-node.active::after{content:'';position:absolute;bottom:-1px;right:15%;left:15%;height:2px;background:var(--gold)}
+.chain-arrow{color:var(--gold);font-size:12px;animation:arrowPulse 1.4s infinite}
+@keyframes arrowPulse{50%{opacity:.3;transform:translateX(4px)}}
+
+/* ═══════════════ AGENTS ORBIT ═══════════════ */
+.orbit-system{position:relative;width:min(620px,90vw);aspect-ratio:1;margin:20px auto 50px}
+.orbit-svg{position:absolute;inset:0;width:100%;height:100%}
+.orbit-svg line{stroke:rgba(212,175,55,.3);stroke-width:1;stroke-dasharray:3 7;animation:dash 1.4s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-10}}
+.o-ring{position:absolute;border-radius:50%;border:1px dashed rgba(212,175,55,.28)}
+.o-ring.r1{width:62%;height:62%;top:19%;left:19%;animation:spin 60s linear infinite}
+.o-ring.r2{width:96%;height:96%;top:2%;left:2%;animation:spinRev 90s linear infinite}
+.orbit-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:150px;height:150px;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle,rgba(212,175,55,.24),rgba(8,8,14,.97) 72%);border:1px solid var(--gold);box-shadow:0 0 55px rgba(212,175,55,.35);z-index:3;animation:float 6s ease-in-out infinite}
+.orbit-center i{font-size:26px;color:var(--gold);margin-bottom:6px}
+.orbit-center b{font-family:var(--orb);font-size:10px;color:var(--gold-l);letter-spacing:1px;display:block;line-height:1.5}
+.orbit-center small{font-size:11px;color:var(--muted)}
+.agent{position:absolute;transform:translate(-50%,-50%);text-align:center;z-index:2;width:110px}
+.agent .ag-dot{width:56px;height:56px;margin:0 auto;border-radius:50%;display:grid;place-items:center;background:#0b0b12;border:1px solid var(--line);color:var(--gold);font-size:18px;transition:.35s;animation:float 5s ease-in-out infinite;box-shadow:0 0 18px rgba(0,0,0,.6)}
+.agent:hover .ag-dot{border-color:var(--gold);box-shadow:0 0 26px rgba(212,175,55,.5);transform:scale(1.12)}
+.agent small{display:block;margin-top:7px;font-size:10.5px;font-weight:700;color:#b8b4a4;line-height:1.5}
+.agent small b{display:block;font-family:var(--orb);font-size:8px;letter-spacing:1px;color:var(--cyan);font-weight:500}
+.ag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:16px}
+.ag-grid .card{padding:22px;display:flex;gap:16px;align-items:flex-start}
+.ag-grid .icon-box{width:44px;height:44px;font-size:16px;margin:0;flex:none}
+.ag-grid h4{font-size:13px;font-weight:800}
+.ag-grid .srv-en{display:block;margin-bottom:4px}
+.ag-grid p{font-size:12.5px}
+
+/* ═══════════════ METHOD ═══════════════ */
+.method-flow{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;direction:ltr;margin-bottom:50px}
+.mf-node{font-family:var(--orb);font-size:12px;letter-spacing:2px;border:1px solid var(--gold);color:var(--gold-l);padding:12px 26px;background:rgba(212,175,55,.07);position:relative;overflow:hidden}
+.mf-node::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(212,175,55,.25),transparent);transform:translateX(-110%);animation:shine 3s infinite}
+@keyframes shine{60%,100%{transform:translateX(110%)}}
+.mf-arrow{color:var(--gold)}
+.method-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;max-width:900px;margin:0 auto;list-style:none}
+.method-list li{border:1px solid var(--line);background:var(--glass);padding:14px 18px;display:flex;gap:12px;align-items:center;font-size:14px;transition:.3s}
+.method-list li:hover{border-color:rgba(212,175,55,.5);transform:translateX(-5px)}
+.method-list i{color:var(--cyan);flex:none}
+
+/* ═══════════════ PRODUCTS ═══════════════ */
+.prod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.prod{position:relative;border:1px solid var(--line);background:linear-gradient(165deg,rgba(255,255,255,.04),transparent);padding:26px;transition:.4s;overflow:hidden}
+.prod::before{content:'';position:absolute;top:0;bottom:0;right:0;width:3px;background:linear-gradient(180deg,var(--gold),transparent)}
+.prod:hover{transform:translateY(-7px) rotate(-.4deg);border-color:rgba(212,175,55,.55);box-shadow:0 24px 46px -18px rgba(212,175,55,.3)}
+.prod-code{font-family:var(--orb);font-size:10px;letter-spacing:2px;color:var(--cyan);display:block;margin-bottom:10px}
+.prod h4{font-size:17px;font-weight:800;color:var(--gold-l);margin-bottom:8px;font-family:var(--orb);font-weight:700;letter-spacing:.5px;font-size:14px}
+.prod p{color:var(--muted);font-size:13.5px}
+.prod .barcode{margin-top:18px;display:flex;gap:2px;opacity:.5}
+.prod .barcode i{display:block;width:2px;height:14px;background:var(--gold)}
+
+/* ═══════════════ EDGE + VALUES ═══════════════ */
+.edge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.val-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
+.val{border:1px solid var(--line);background:var(--glass);padding:26px 16px;text-align:center;transition:.4s}
+.val i{font-size:24px;color:var(--gold);margin-bottom:14px;display:block;transition:.4s}
+.val b{display:block;font-size:16px;margin-bottom:6px}
+.val p{font-size:12px;color:var(--muted)}
+.val:hover{border-color:var(--gold);transform:translateY(-6px)}
+.val:hover i{transform:scale(1.2);text-shadow:0 0 18px var(--gold)}
+
+/* ═══════════════ REPORT TERMINAL ═══════════════ */
+.terminal{max-width:640px;margin:0 auto;border:1px solid var(--line);background:rgba(8,8,13,.92);box-shadow:0 30px 80px -20px rgba(0,0,0,.8),0 0 60px -30px rgba(212,175,55,.4)}
+.term-bar{display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--line);background:rgba(212,175,55,.05)}
+.term-bar i{width:11px;height:11px;border-radius:50%;display:block}
+.term-bar i:nth-child(1){background:#ff5f56}.term-bar i:nth-child(2){background:#ffbd2e}.term-bar i:nth-child(3){background:#27c93f}
+.term-bar span{font-family:var(--orb);font-size:10px;letter-spacing:3px;color:var(--gold);margin:0 auto}
+.term-body{padding:26px 30px;position:relative;overflow:hidden}
+.term-body::after{content:'';position:absolute;left:0;right:0;height:36px;top:-40px;background:linear-gradient(180deg,transparent,rgba(212,175,55,.14),transparent);animation:scanY 4s linear infinite}
+@keyframes scanY{to{top:110%}}
+.term-line{display:flex;gap:14px;align-items:baseline;padding:5px 0;font-size:14px;opacity:0;transform:translateX(14px);transition:.5s}
+.term-line.show{opacity:1;transform:none}
+.term-line .ln{font-family:var(--orb);font-size:10px;color:var(--gold-d);min-width:24px}
+.term-line .ten{font-family:var(--orb);font-size:11.5px;letter-spacing:1px;color:var(--cyan);min-width:220px}
+.term-line .tar{color:#c9c5b5;font-size:13px}
+.term-cursor{font-family:var(--orb);color:var(--gold);font-size:13px}
+.term-cursor::after{content:'▌';animation:blink 1s steps(2) infinite}
+
+/* ═══════════════ PLATFORM ═══════════════ */
+.merge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:820px;margin:0 auto 14px}
+.merge-chip{border:1px solid var(--line);background:var(--glass);padding:20px;text-align:center;font-family:var(--orb);font-size:11.5px;letter-spacing:2px;color:var(--gold-l);transition:.4s}
+.merge-chip:hover{border-color:var(--gold);box-shadow:0 0 24px rgba(212,175,55,.25);transform:translateY(-4px)}
+.merge-plus{text-align:center;color:var(--gold);font-size:22px;margin:6px 0}
+.platform-core{max-width:820px;margin:0 auto;border:1px solid var(--gold);background:radial-gradient(ellipse at 50% 0%,rgba(212,175,55,.12),rgba(8,8,13,.9) 65%);padding:44px 34px;text-align:center;position:relative;box-shadow:0 0 70px -20px rgba(212,175,55,.4)}
+.platform-core::before,.platform-core::after{content:'';position:absolute;width:22px;height:22px}
+.platform-core::before{top:10px;right:10px;border-top:2px solid var(--gold);border-right:2px solid var(--gold)}
+.platform-core::after{bottom:10px;left:10px;border-bottom:2px solid var(--gold);border-left:2px solid var(--gold)}
+.platform-core h3{font-family:var(--orb);font-size:clamp(16px,2.4vw,24px);color:var(--gold-l);letter-spacing:2px;margin-bottom:8px}
+.platform-core>p{color:var(--muted);font-size:14.5px;max-width:520px;margin:0 auto 26px}
+.mission-flow{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:9px;direction:ltr}
+.mission-flow span{font-family:var(--orb);font-size:10.5px;letter-spacing:1px;border:1px solid var(--line);padding:8px 16px;color:var(--text);background:rgba(255,255,255,.03)}
+.mission-flow i{color:var(--gold);font-size:10px}
+
+/* ═══════════════ EXPANSION ═══════════════ */
+.exp-wrap{position:relative;max-width:900px;margin:0 auto 56px;padding:20px 0}
+.exp-line{position:absolute;top:50%;right:8%;left:8%;height:2px;background:rgba(212,175,55,.15);overflow:hidden}
+.exp-line::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--gold),transparent);width:40%;animation:expFlow 3s linear infinite}
+@keyframes expFlow{from{transform:translateX(220%)}to{transform:translateX(-220%)}}
+.exp-row{display:flex;justify-content:space-between;align-items:center;position:relative}
+.exp-node{text-align:center;position:relative}
+.exp-dot{border-radius:50%;display:grid;place-items:center;border:1px solid var(--gold);background:radial-gradient(circle,rgba(212,175,55,.2),#0a0a10 75%);color:var(--gold);margin:0 auto 14px;box-shadow:0 0 24px rgba(212,175,55,.25);transition:.4s;animation:float 5s ease-in-out infinite}
+.exp-node:nth-child(1) .exp-dot{width:58px;height:58px;font-size:18px}
+.exp-node:nth-child(2) .exp-dot{width:76px;height:76px;font-size:24px}
+.exp-node:nth-child(3) .exp-dot{width:94px;height:94px;font-size:30px}
+.exp-node:nth-child(4) .exp-dot{width:112px;height:112px;font-size:38px}
+.exp-node:hover .exp-dot{box-shadow:0 0 45px rgba(212,175,55,.55);transform:scale(1.08)}
+.exp-node b{display:block;font-size:17px;font-weight:900}
+.exp-node small{font-family:var(--orb);font-size:9px;letter-spacing:3px;color:var(--cyan)}
+.future-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.future-chips span{font-family:var(--orb);font-size:10px;letter-spacing:1px;border:1px solid var(--line);padding:9px 18px;color:#b8b4a4;transition:.3s}
+.future-chips span:hover{color:var(--gold-l);border-color:var(--gold);box-shadow:0 0 16px rgba(212,175,55,.2)}
+
+/* ═══════════════ SECTORS ═══════════════ */
+.sector-cloud{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:900px;margin:0 auto}
+.sector{display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:var(--glass);padding:11px 20px;font-size:14px;color:#c9c5b5;transition:.35s;cursor:default}
+.sector i{color:var(--gold);font-size:13px}
+.sector:hover{border-color:var(--gold);color:var(--gold-l);transform:translateY(-4px) scale(1.03);box-shadow:0 12px 26px -10px rgba(212,175,55,.35)}
+
+/* ═══════════════ CONTACT ═══════════════ */
+.cta-panel{max-width:900px;margin:0 auto;text-align:center;border:1px solid var(--gold);padding:80px 30px;position:relative;background:radial-gradient(ellipse at 50% 120%,rgba(212,175,55,.16),rgba(8,8,13,.6) 70%);box-shadow:0 0 90px -30px rgba(212,175,55,.45)}
+.cta-panel .cp-corner{width:22px;height:22px}
+.cta-panel h2{font-size:clamp(26px,4vw,44px);font-weight:900;margin-bottom:16px}
+.cta-panel p{color:var(--muted);max-width:520px;margin:0 auto 36px}
+.cta-meta{display:flex;justify-content:center;gap:34px;flex-wrap:wrap;margin-top:44px}
+.cta-meta div{font-family:var(--orb);font-size:10px;letter-spacing:2px;color:var(--muted)}
+.cta-meta b{display:block;color:var(--gold);font-size:13px;margin-bottom:5px}
+
+/* ═══════════════ FOOTER ═══════════════ */
+footer{border-top:1px solid var(--line);padding:70px 5% 30px;background:linear-gradient(180deg,transparent,rgba(212,175,55,.04))}
+.foot-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:50px;margin-bottom:50px}
+.foot-brand{display:flex;gap:18px;align-items:flex-start}
+.foot-brand img{width:72px;height:72px;border-radius:50%;border:1px solid var(--line);object-fit:cover;box-shadow:0 0 26px rgba(212,175,55,.3)}
+.foot-brand b{font-family:var(--orb);color:var(--gold);letter-spacing:3px;font-size:14px;display:block;margin-bottom:8px}
+.foot-brand p{color:var(--muted);font-size:13.5px}
+.foot-col h5{font-size:16px;font-weight:800;color:var(--gold-l);margin-bottom:18px}
+.foot-col a,.foot-col span{display:block;color:var(--muted);font-size:14px;padding:5px 0;transition:.3s}
+.foot-col a:hover{color:var(--gold);transform:translateX(-5px)}
+.foot-bottom{max-width:1200px;margin:0 auto;border-top:1px solid var(--line);padding-top:24px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:12.5px}
+.foot-bottom .en{color:var(--gold);font-size:10px}
+
+/* ═══════════════ ANIMATIONS ═══════════════ */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinRev{to{transform:rotate(-360deg)}}
+@keyframes pulse{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes blink{50%{opacity:0}}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(max-width:1080px){
+  .obj-grid{grid-template-columns:repeat(3,1fr)}
+  .val-grid{grid-template-columns:repeat(3,1fr)}
+  .srv-grid,.prod-grid,.edge-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:900px){
+  .about-grid,.cycle-wrap,.vm-grid{grid-template-columns:1fr}
+  #burger{display:grid;place-items:center}
+  .nav-links{position:fixed;top:0;right:-100%;width:min(320px,85vw);height:100vh;background:rgba(6,6,11,.97);backdrop-filter:blur(20px);flex-direction:column;justify-content:center;gap:8px;transition:.45s;border-left:1px solid var(--line);padding-top:0}
+  .nav-links.open{right:0}
+  .nav-links a{font-size:17px;padding:13px}
+  .hud-side{display:none}
+}
+@media(max-width:600px){
+  section{padding:80px 6%}
+  .srv-grid,.prod-grid,.edge-grid,.obj-grid,.stats,.mission-list{grid-template-columns:1fr}
+  .val-grid{grid-template-columns:repeat(2,1fr)}
+  .merge-grid{grid-template-columns:1fr 1fr}
+  .exp-row{flex-direction:column;gap:34px}
+  .exp-line{right:50%;left:auto;top:0;bottom:0;width:2px;height:auto}
+  .exp-line::after{width:100%;height:40%;animation:expFlowY 3s linear infinite}
+  .chain{gap:6px}
+  .chain-arrow{display:none}
+  .foot-grid{grid-template-columns:1fr;gap:34px}
+  .agent{width:88px}
+  .agent small{font-size:9px}
+}
+@keyframes expFlowY{from{transform:translateY(-110%)}to{transform:translateY(320%)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<!-- ═══════ PRELOADER ═══════ -->
+<div id="preloader">
+  <div class="pre-ring">
+    <img src="https://z-cdn-media.chatglm.cn/files/1f01e319-63c5-4c7c-873f-f27fdcc52b95.png?auth_key=1890389552-941dc7c4aa784cd7ab9cbb6a93f5a6d6-0-ef1e63e8f033a380867f573fd8e8d101" alt="AMUN">
+  </div>
+  <div class="pre-title">AMUN INTELLIGENCE</div>
+  <div class="pre-bar"><span id="preBar"></span></div>
+  <div class="pre-txt">INITIALIZING INTELLIGENCE CORE</div>
+</div>
+
+<!-- ═══════ BACKGROUND ═══════ -->
+<canvas id="network"></canvas>
+<div class="grid-bg"></div>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+
+<!-- ═══════ NAV ═══════ -->
+<nav id="nav">
+  <a href="#home" class="nav-brand">
+    <div class="nav-logo"><img src="https://z-cdn-media.chatglm.cn/files/1f01e319-63c5-4c7c-873f-f27fdcc52b95.png?auth_key=1890389552-941dc7c4aa784cd7ab9cbb6a93f5a6d6-0-ef1e63e8f033a380867f573fd8e8d101" alt="AMUN"></div>
+    <div class="nav-name">AMUN<small>INTELLIGENCE</small></div>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#home" class="active">الرئيسية</a></li>
+    <li><a href="#about">من نحن</a></li>
+    <li><a href="#services">خدماتنا</a></li>
+    <li><a href="#agents">المنظومة الذكية</a></li>
+    <li><a href="#products">المنتجات</a></li>
+    <li><a href="#platform">المنصة</a></li>
+    <li><a href="#contact" class="nav-cta">ابدأ مهمتك</a></li>
+  </ul>
+  <button id="burger" aria-label="القائمة"><i class="fas fa-bars"></i></button>
+</nav>
+
+<!-- ═══════ HERO ═══════ -->
+<header id="home" class="hero">
+  <div class="hero-floor"></div>
+  <div class="hud-side right">SYS.STATUS // ONLINE &nbsp;•&nbsp; AGENTS:11 &nbsp;•&nbsp; SECTOR:CORP-INT</div>
+  <div class="hud-side left">LAT 30.4595 N &nbsp;•&nbsp; LON 31.1787 E &nbsp;•&nbsp; NODE:AMUN-01</div>
+
+  <div class="hero-badge">AMUN CORPORATE INTELLIGENCE // ACI</div>
+
+  <div class="logo-orbit">
+    <div class="or or-1"></div>
+    <div class="or or-2"><span class="dot"></span><span class="dot d2"></span></div>
+    <div class="or or-3"></div>
+    <div class="logo-core">
+      <img src="https://z-cdn-media.chatglm.cn/files/1f01e319-63c5-4c7c-873f-f27fdcc52b95.png?auth_key=1890389552-941dc7c4aa784cd7ab9cbb6a93f5a6d6-0-ef1e63e8f033a380867f573fd8e8d101" alt="AMUN INTELLIGENCE">
+    </div>
+  </div>
+
+  <h1>استخبارات مؤسسية <span class="gold-text">بمعايير المستقبل</span></h1>
+  <p class="hero-sub">نحوّل البيانات والمعلومات المتناثرة إلى Intelligence قابلة للتحليل واتخاذ القرار — بدمج الخبرة البشرية مع أنظمة الذكاء الاصطناعي متعددة الوكلاء.</p>
+
+  <div class="type-line"><span class="prompt">&gt;&gt;</span> <span id="typeTarget"></span><span class="caret"></span></div>
+
+  <div class="motto">
+    <span>INTELLIGENCE</span><span>INSIGHT</span><span>DECISION</span>
+  </div>
+
+  <div class="hero-ctas">
+    <a href="#services" class="btn solid"><i class="fas fa-satellite-dish"></i> اكتشف قدراتنا</a>
+    <a href="#contact" class="btn"><i class="fas fa-crosshairs"></i> ابدأ مهمة استخباراتية</a>
+  </div>
+
+  <div class="scroll-hint"><div class="wheel"></div><span>SCROLL</span></div>
+</header>
+
+<!-- ═══════ TICKER ═══════ -->
+<div class="ticker">
+  <div class="t-track">
+    <div class="t-set">
+      <span>CORPORATE INTELLIGENCE</span><i>◆</i><span>OSINT</span><i>◆</i><span>DUE DILIGENCE</span><i>◆</i><span>COMPETITIVE INTELLIGENCE</span><i>◆</i><span>MARKET INTELLIGENCE</span><i>◆</i><span>RISK INTELLIGENCE</span><i>◆</i><span>DIGITAL RISK</span><i>◆</i><span>CYBER INTELLIGENCE</span><i>◆</i><span>MULTI-AGENT AI</span><i>◆</i><span>KNOWLEDGE GRAPH</span><i>◆</i><span>DECISION SUPPORT</span><i>◆</i>
+    </div>
+    <div class="t-set">
+      <span>CORPORATE INTELLIGENCE</span><i>◆</i><span>OSINT</span><i>◆</i><span>DUE DILIGENCE</span><i>◆</i><span>COMPETITIVE INTELLIGENCE</span><i>◆</i><span>MARKET INTELLIGENCE</span><i>◆</i><span>RISK INTELLIGENCE</span><i>◆</i><span>DIGITAL RISK</span><i>◆</i><span>CYBER INTELLIGENCE</span><i>◆</i><span>MULTI-AGENT AI</span><i>◆</i><span>KNOWLEDGE GRAPH</span><i>◆</i><span>DECISION SUPPORT</span><i>◆</i>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ ABOUT ═══════ -->
+<section id="about">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">WHO WE ARE // 01</div>
+      <h2 class="sec-title">من نحن — <span class="gold-text">ACI</span></h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-text reveal">
+        <h3>حيث تتحول المعلومة إلى <span class="gold-text">قوة قرار</span></h3>
+        <p><b>AMUN Corporate Intelligence (ACI)</b> مؤسسة متخصصة في استخبارات الشركات وتحليل المعلومات ودعم اتخاذ القرار، تجمع بين الذكاء الاصطناعي، OSINT، تحليل البيانات، الأمن السيبراني، التحقيقات الرقمية، واستخبارات الأعمال.</p>
+        <p>نعتمد نموذجًا حديثًا يدمج الخبرة البشرية مع الأنظمة الذكية متعددة الوكلاء، لبناء قدرات تجمع المعلومات وتتحقق منها وتربطها وتحللها وتستخرج المؤشرات والأنماط والعلاقات ذات الصلة.</p>
+        <p>هدفنا ليس مجرد تقديم معلومات — بل مساعدة المؤسسات على فهم <b>ما يحدث، ولماذا يحدث، وماذا يعني ذلك لأعمالها.</b></p>
+        <div class="about-quote"><i class="fas fa-quote-right"></i> Intelligence. Insight. Decision.</div>
+      </div>
+      <div class="stats">
+        <div class="stat reveal"><b class="gold-text counter" data-target="9">0</b><span>خدمات استخباراتية</span></div>
+        <div class="stat reveal" data-delay="100"><b class="gold-text counter" data-target="11">0</b><span>وكيل ذكي متخصص</span></div>
+        <div class="stat reveal" data-delay="200"><b class="gold-text counter" data-target="8">0</b><span>مراحل في دورة الاستخبارات</span></div>
+        <div class="stat reveal" data-delay="300"><b class="gold-text counter" data-target="13">0</b><span>قطاعًا مستهدفًا</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ VISION & MISSION ═══════ -->
+<section id="vision">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">VISION & MISSION // 02</div>
+      <h2 class="sec-title">رؤيتنا ورسالتنا</h2>
+    </div>
+    <div class="vm-grid">
+      <div class="card vm-card reveal">
+        <h3><i class="fas fa-eye"></i> رؤيتنا</h3>
+        <p>أن تصبح ACI منصة ومؤسسة رائدة في مجال <b>Corporate Intelligence</b> في مصر والمنطقة العربية، وأن نقدم نموذجًا متقدمًا لاستخدام الذكاء الاصطناعي والاستخبارات المفتوحة في دعم المؤسسات وصنّاع القرار.</p>
+        <p style="margin-top:14px">نسعى لبناء منظومة Intelligence حديثة تتعامل مع كميات ضخمة من المعلومات وتحوّلها إلى معرفة منظمة ومؤشرات قابلة للاستخدام.</p>
+      </div>
+      <div class="card vm-card reveal" data-delay="150">
+        <h3><i class="fas fa-bullseye"></i> رسالتنا</h3>
+        <p>تمكين الشركات والمؤسسات من الوصول إلى معلومات موثوقة وتحليلات عميقة تساعدها على:</p>
+        <ul class="mission-list">
+          <li><i class="fas fa-check"></i> فهم الأسواق والمنافسين</li>
+          <li><i class="fas fa-check"></i> تقييم الشركاء والعملاء المحتملين</li>
+          <li><i class="fas fa-check"></i> اكتشاف المخاطر مبكرًا</li>
+          <li><i class="fas fa-check"></i> حماية السمعة والأصول الرقمية</li>
+          <li><i class="fas fa-check"></i> فهم البيئة التنافسية</li>
+          <li><i class="fas fa-check"></i> دعم الاستثمار والتوسع</li>
+          <li><i class="fas fa-check"></i> قرارات مبنية على الأدلة</li>
+          <li><i class="fas fa-check"></i> تحويل المعلومات المفتوحة إلى Intelligence</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ OBJECTIVES ═══════ -->
+<section id="objectives">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">STRATEGIC GOALS // 03</div>
+      <h2 class="sec-title">أهدافنا الاستراتيجية</h2>
+    </div>
+    <div class="obj-grid">
+      <div class="card obj reveal"><span class="num en">01</span>
+        <div class="icon-box"><i class="fas fa-magnifying-glass-chart"></i></div>
+        <h4>الاستخبارات المؤسسية</h4><span class="srv-en">INTELLIGENCE</span>
+        <p>بناء قدرات متقدمة في Corporate & Business Intelligence لفهم البيئة الداخلية والخارجية.</p>
+      </div>
+      <div class="card obj reveal" data-delay="90"><span class="num en">02</span>
+        <div class="icon-box"><i class="fas fa-shield-halved"></i></div>
+        <h4>الكشف المبكر عن المخاطر</h4><span class="srv-en">RISK</span>
+        <div class="tags"><span>تشغيلية</span><span>تجارية</span><span>أطراف ثالثة</span><span>سمعة</span><span>رقمية</span><span>احتيال</span><span>تهديدات</span></div>
+      </div>
+      <div class="card obj reveal" data-delay="180"><span class="num en">03</span>
+        <div class="icon-box"><i class="fas fa-microchip"></i></div>
+        <h4>دمج الذكاء الاصطناعي</h4><span class="srv-en">AI</span>
+        <p>في كل مراحل الدورة: Collection → Processing → Analysis → Correlation → Intelligence → Reporting</p>
+      </div>
+      <div class="card obj reveal" data-delay="270"><span class="num en">04</span>
+        <div class="icon-box"><i class="fas fa-satellite-dish"></i></div>
+        <h4>الاستخبارات المفتوحة</h4><span class="srv-en">OSINT</span>
+        <p>قدرات متقدمة في جمع وتحليل المعلومات المتاحة قانونيًا من المصادر المفتوحة.</p>
+      </div>
+      <div class="card obj reveal" data-delay="360"><span class="num en">05</span>
+        <div class="icon-box"><i class="fas fa-code-branch"></i></div>
+        <h4>ذكاء القرار</h4><span class="srv-en">DECISION INTELLIGENCE</span>
+        <p>تحويل التقارير إلى أنظمة تفهم: Situation → Evidence → Risk → Opportunity → Options</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SERVICES ═══════ -->
+<section id="services">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">CAPABILITIES // 04</div>
+      <h2 class="sec-title">خدماتنا <span class="gold-text">الرئيسية</span></h2>
+      <p class="sec-desc">تسع قدرات استخباراتية متكاملة تغطي دورة المعلومة كاملة — من المصدر حتى القرار.</p>
+    </div>
+    <div class="srv-grid">
+      <div class="card reveal"><span class="num en">01</span><div class="icon-box"><i class="fas fa-magnifying-glass-chart"></i></div><h3>استخبارات الشركات</h3><span class="srv-en">CORPORATE INTELLIGENCE</span><p>تحليل الشركات والقطاعات والأسواق والمنافسين وتقديم صورة استخباراتية متكاملة.</p></div>
+      <div class="card reveal" data-delay="80"><span class="num en">02</span><div class="icon-box"><i class="fas fa-file-shield"></i></div><h3>الفحص النافي للجهالة</h3><span class="srv-en">DUE DILIGENCE</span><p>فحص وتحليل الأطراف التجارية قبل الاستثمار أو الشراكة أو الاستحواذ أو التعاقد أو التوسع.</p></div>
+      <div class="card reveal" data-delay="160"><span class="num en">03</span><div class="icon-box"><i class="fas fa-chess-knight"></i></div><h3>استخبارات المنافسين</h3><span class="srv-en">COMPETITIVE INTELLIGENCE</span><p>تحليل المنتجات والخدمات والأسواق والاستراتيجيات والنشاط الرقمي والتغيرات في السوق.</p></div>
+      <div class="card reveal"><span class="num en">04</span><div class="icon-box"><i class="fas fa-chart-line"></i></div><h3>استخبارات الأسواق</h3><span class="srv-en">MARKET INTELLIGENCE</span><p>دراسة الأسواق والقطاعات وتحديد الاتجاهات والفرص والتهديدات واللاعبين الرئيسيين.</p></div>
+      <div class="card reveal" data-delay="80"><span class="num en">05</span><div class="icon-box"><i class="fas fa-triangle-exclamation"></i></div><h3>استخبارات المخاطر</h3><span class="srv-en">RISK INTELLIGENCE</span><p>تحديد وتحليل المخاطر التي يمكن أن تؤثر على المؤسسة أو المشروع قبل وقوعها.</p></div>
+      <div class="card reveal" data-delay="160"><span class="num en">06</span><div class="icon-box"><i class="fas fa-satellite-dish"></i></div><h3>الاستخبارات المفتوحة</h3><span class="srv-en">OSINT INTELLIGENCE</span><p>جمع وتحليل المعلومات من المصادر المفتوحة والمتاحة قانونيًا: الشركات، الأشخاص، السجلات، الأخبار.</p></div>
+      <div class="card reveal"><span class="num en">07</span><div class="icon-box"><i class="fas fa-fingerprint"></i></div><h3>المخاطر الرقمية</h3><span class="srv-en">DIGITAL RISK INTELLIGENCE</span><p>تحليل البصمة الرقمية وسطح الهجوم وإساءة استخدام العلامة التجارية ومؤشرات التهديد.</p></div>
+      <div class="card reveal" data-delay="80"><span class="num en">08</span><div class="icon-box"><i class="fas fa-magnifying-glass"></i></div><h3>التحقيقات المؤسسية</h3><span class="srv-en">CORPORATE INVESTIGATIONS</span><p>تحليل الحالات التجارية والرقمية المعقدة لتحديد العلاقات والأحداث والمؤشرات ذات الصلة.</p></div>
+      <div class="card reveal" data-delay="160"><span class="num en">09</span><div class="icon-box"><i class="fas fa-diagram-project"></i></div><h3>كشف الاحتيال والشذوذ</h3><span class="srv-en">FRAUD & ANOMALY</span><p>تحليل البيانات والمؤشرات للكشف عن الأنماط غير المعتادة التي تستدعي تحقيقًا إضافيًا.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ INTELLIGENCE CYCLE ═══════ -->
+<section id="cycle">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">INTELLIGENCE CYCLE // 05</div>
+      <h2 class="sec-title">دورة الاستخبارات <span class="gold-text">الحية</span></h2>
+      <p class="sec-desc">ثماني مراحل منظمة تعمل باستمرار — شاهد الرادار وهو يتنقل بين المراحل.</p>
+    </div>
+    <div class="cycle-wrap">
+      <div class="radar reveal" id="radar">
+        <div class="r-base"></div><div class="r-base b2"></div><div class="r-base b3"></div>
+        <div class="r-cross-h"></div><div class="r-cross-v"></div>
+        <div class="r-sweep"></div>
+        <div class="r-hub"><div><b>ACI<br>CYCLE</b><small>دورة مستمرة</small></div></div>
+      </div>
+      <div class="cycle-panel reveal" data-delay="150">
+        <span class="cp-corner tl"></span><span class="cp-corner tr"></span><span class="cp-corner bl"></span><span class="cp-corner br"></span>
+        <div class="cp-head"><span id="cpStep">STEP 01 / 08</span><span class="cp-en" id="cpEn">DEFINE</span></div>
+        <h3 id="cpAr">تحديد السؤال الاستخباراتي</h3>
+        <p class="cp-desc" id="cpDesc"></p>
+        <div class="cp-bar"><span id="cpBar"></span></div>
+        <div class="cp-ctrl">
+          <button id="cpPrev" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
+          <button id="cpPlay" aria-label="إيقاف/تشغيل"><i class="fas fa-pause"></i></button>
+          <button id="cpNext" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ STATEMENT ═══════ -->
+<section class="statement">
+  <div class="container">
+    <div class="reveal">
+      <div class="sec-tag">CORE PRINCIPLE // 06</div>
+      <div class="glitch" data-text="INFORMATION ≠ INTELLIGENCE">INFORMATION ≠ INTELLIGENCE</div>
+      <p>المعلومة وحدها ليست استخبارات — الفرق هو الدليل، والسياق، والتحليل، ومستوى الثقة.</p>
+    </div>
+    <div class="chain reveal" id="chain">
+      <div class="chain-node"><b>DATA</b><small>بيانات</small></div><i class="fas fa-arrow-right chain-arrow"></i>
+      <div class="chain-node"><b>INFORMATION</b><small>معلومات</small></div><i class="fas fa-arrow-right chain-arrow"></i>
+      <div class="chain-node"><b>EVIDENCE</b><small>أدلة</small></div><i class="fas fa-arrow-right chain-arrow"></i>
+      <div class="chain-node"><b>ANALYSIS</b><small>تحليل</small></div><i class="fas fa-arrow-right chain-arrow"></i>
+      <div class="chain-node"><b>INTELLIGENCE</b><small>استخبارات</small></div><i class="fas fa-arrow-right chain-arrow"></i>
+      <div class="chain-node"><b>DECISION SUPPORT</b><small>دعم القرار</small></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ MULTI-AGENT ═══════ -->
+<section id="agents">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">MULTI-AGENT ARCHITECTURE // 07</div>
+      <h2 class="sec-title">منظومة <span class="gold-text">الوكلاء الأذكياء</span></h2>
+      <p class="sec-desc">بدلًا من وكيل واحد — مهمة استخباراتية واحدة تُوزَّع على منظومة من الوكلاء المتخصصين ينسق بينهم المدير الاستخباراتي.</p>
+    </div>
+
+    <div class="orbit-system reveal" id="orbitSys">
+      <svg class="orbit-svg" id="orbitLinks"></svg>
+      <div class="o-ring r1"></div>
+      <div class="o-ring r2"></div>
+      <div class="orbit-center"><div><i class="fas fa-brain"></i><b>INTELLIGENCE<br>DIRECTOR</b><small>المدير الاستخباراتي</small></div></div>
+      <!-- Ring 1 -->
+      <div class="agent" data-ring="1" data-i="0"><div class="ag-dot"><i class="fas fa-satellite-dish"></i></div><small><b>OSINT AGENT</b>وكيل المصادر المفتوحة</small></div>
+      <div class="agent" data-ring="1" data-i="1"><div class="ag-dot"><i class="fas fa-building"></i></div><small><b>CORPORATE RESEARCH</b>وكيل تحليل الشركات</small></div>
+      <div class="agent" data-ring="1" data-i="2"><div class="ag-dot"><i class="fas fa-coins"></i></div><small><b>FINANCIAL INT.</b>وكيل المؤشرات المالية</small></div>
+      <div class="agent" data-ring="1" data-i="3"><div class="ag-dot"><i class="fas fa-shield-halved"></i></div><small><b>CYBER INT.</b>وكيل المؤشرات السيبرانية</small></div>
+      <div class="agent" data-ring="1" data-i="4"><div class="ag-dot"><i class="fas fa-users"></i></div><small><b>SOCIAL INT.</b>وكيل المعلومات الاجتماعية</small></div>
+      <!-- Ring 2 -->
+      <div class="agent" data-ring="2" data-i="0"><div class="ag-dot"><i class="fas fa-earth-africa"></i></div><small><b>GEOSPATIAL</b>وكيل المعلومات الجغرافية</small></div>
+      <div class="agent" data-ring="2" data-i="1"><div class="ag-dot"><i class="fas fa-diagram-project"></i></div><small><b>ENTITY RESOLUTION</b>وكيل ربط الكيانات</small></div>
+      <div class="agent" data-ring="2" data-i="2"><div class="ag-dot"><i class="fas fa-triangle-exclamation"></i></div><small><b>RISK ANALYSIS</b>وكيل تحليل المخاطر</small></div>
+      <div class="agent" data-ring="2" data-i="3"><div class="ag-dot"><i class="fas fa-folder-open"></i></div><small><b>EVIDENCE</b>وكيل تتبع الأدلة</small></div>
+      <div class="agent" data-ring="2" data-i="4"><div class="ag-dot"><i class="fas fa-file-lines"></i></div><small><b>REPORT GENERATOR</b>مولد التقارير التنفيذية</small></div>
+    </div>
+
+    <div class="ag-grid">
+      <div class="card reveal"><div class="icon-box"><i class="fas fa-satellite-dish"></i></div><div><h4>وكيل المصادر المفتوحة</h4><span class="srv-en">OSINT AGENT</span><p>يجمع المعلومات المفتوحة من المصادر المتاحة قانونيًا.</p></div></div>
+      <div class="card reveal" data-delay="60"><div class="icon-box"><i class="fas fa-building"></i></div><div><h4>وكيل أبحاث الشركات</h4><span class="srv-en">CORPORATE RESEARCH</span><p>يحلل الشركات وكياناتها وهيكلها ونشاطها.</p></div></div>
+      <div class="card reveal" data-delay="120"><div class="icon-box"><i class="fas fa-coins"></i></div><div><h4>وكيل الاستخبارات المالية</h4><span class="srv-en">FINANCIAL INTELLIGENCE</span><p>يحلل المؤشرات المالية المتاحة.</p></div></div>
+      <div class="card reveal" data-delay="180"><div class="icon-box"><i class="fas fa-shield-halved"></i></div><div><h4>وكيل الاستخبارات السيبرانية</h4><span class="srv-en">CYBER INTELLIGENCE</span><p>يحلل المؤشرات الرقمية والأمنية.</p></div></div>
+      <div class="card reveal" data-delay="240"><div class="icon-box"><i class="fas fa-users"></i></div><div><h4>وكيل الاستخبارات الاجتماعية</h4><span class="srv-en">SOCIAL INTELLIGENCE</span><p>يحلل المعلومات الاجتماعية والرقمية المتاحة.</p></div></div>
+      <div class="card reveal"><div class="icon-box"><i class="fas fa-earth-africa"></i></div><div><h4>وكيل الاستخبارات الجغرافية</h4><span class="srv-en">GEOSPATIAL INTELLIGENCE</span><p>يتعامل مع المعلومات الجغرافية والمكانية.</p></div></div>
+      <div class="card reveal" data-delay="60"><div class="icon-box"><i class="fas fa-diagram-project"></i></div><div><h4>وكيل ربط الكيانات</h4><span class="srv-en">ENTITY RESOLUTION</span><p>يربط الأسماء والكيانات والعلاقات ببعضها.</p></div></div>
+      <div class="card reveal" data-delay="120"><div class="icon-box"><i class="fas fa-triangle-exclamation"></i></div><div><h4>وكيل تحليل المخاطر</h4><span class="srv-en">RISK ANALYSIS</span><p>يحدد مؤشرات المخاطر ويقيّمها.</p></div></div>
+      <div class="card reveal" data-delay="180"><div class="icon-box"><i class="fas fa-folder-open"></i></div><div><h4>وكيل الأدلة</h4><span class="srv-en">EVIDENCE AGENT</span><p>يتتبع الأدلة والمصادر ويوثقها.</p></div></div>
+      <div class="card reveal" data-delay="240"><div class="icon-box"><i class="fas fa-file-lines"></i></div><div><h4>مولد التقارير</h4><span class="srv-en">REPORT GENERATOR</span><p>يحوّل نتائج التحليل إلى تقرير تنفيذي.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ METHOD ═══════ -->
+<section id="method">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">VERIFICATION // 08</div>
+      <h2 class="sec-title">منهجية <span class="gold-text">التحقق</span></h2>
+      <p class="sec-desc">لا نتعامل مع معلومة منفردة كحقيقة نهائية دون تقييم مصدرها وسياقها.</p>
+    </div>
+    <div class="method-flow reveal">
+      <div class="mf-node">SOURCE</div><i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-node">EVIDENCE</div><i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-node">CORRELATION</div><i class="fas fa-arrow-right mf-arrow"></i>
+      <div class="mf-node">CONFIDENCE</div>
+    </div>
+    <ul class="method-list">
+      <li class="reveal"><i class="fas fa-check-double"></i> مقارنة المصادر المختلفة</li>
+      <li class="reveal" data-delay="60"><i class="fas fa-clock"></i> تحديد تاريخ المعلومة</li>
+      <li class="reveal" data-delay="120"><i class="fas fa-link"></i> تحديد مصدرها الأصلي</li>
+      <li class="reveal" data-delay="180"><i class="fas fa-star-half-stroke"></i> تقييم موثوقية المصدر</li>
+      <li class="reveal" data-delay="240"><i class="fas fa-code-branch"></i> فصل الحقيقة عن الاستنتاج</li>
+      <li class="reveal" data-delay="300"><i class="fas fa-gauge-high"></i> توضيح مستوى الثقة</li>
+      <li class="reveal" data-delay="360"><i class="fas fa-database"></i> الاحتفاظ بسجل الأدلة</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════ PRODUCTS ═══════ -->
+<section id="products">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">PRODUCTS // 09</div>
+      <h2 class="sec-title">المنتجات <span class="gold-text">الاستخباراتية</span></h2>
+      <p class="sec-desc">قدرات ACI في صورة منتجات واضحة وجاهزة للاستخدام.</p>
+    </div>
+    <div class="prod-grid">
+      <div class="prod reveal"><span class="prod-code">ACI / MOD-01</span><h4>Company Profile</h4><p>تحليل شامل ومتكامل لشركة معينة.</p><div class="barcode"><i></i><i style="height:9px"></i><i></i><i style="height:11px"></i><i style="height:8px"></i><i></i></div></div>
+      <div class="prod reveal" data-delay="70"><span class="prod-code">ACI / MOD-02</span><h4>Due Diligence Report</h4><p>تقرير فحص شامل قبل أي تعامل تجاري.</p><div class="barcode"><i></i><i style="height:10px"></i><i style="height:8px"></i><i></i><i style="height:12px"></i><i style="height:7px"></i></div></div>
+      <div class="prod reveal" data-delay="140"><span class="prod-code">ACI / MOD-03</span><h4>Competitor Report</h4><p>تحليل عميق لمنافس محدد في السوق.</p><div class="barcode"><i style="height:11px"></i><i></i><i style="height:9px"></i><i style="height:12px"></i><i></i><i style="height:8px"></i></div></div>
+      <div class="prod reveal"><span class="prod-code">ACI / MOD-04</span><h4>Market Intelligence Report</h4><p>تحليل سوق أو قطاع كامل بالاتجاهات والفرص.</p><div class="barcode"><i></i><i style="height:12px"></i><i style="height:7px"></i><i></i><i style="height:10px"></i><i></i></div></div>
+      <div class="prod reveal" data-delay="70"><span class="prod-code">ACI / MOD-05</span><h4>Risk Report</h4><p>تقييم شامل للمخاطر المحيطة بقرارك.</p><div class="barcode"><i style="height:9px"></i><i></i><i style="height:12px"></i><i style="height:8px"></i><i></i><i style="height:11px"></i></div></div>
+      <div class="prod reveal" data-delay="140"><span class="prod-code">ACI / MOD-06</span><h4>Digital Footprint Report</h4><p>تحليل البصمة الرقمية والانكشاف الرقمي.</p><div class="barcode"><i></i><i style="height:8px"></i><i style="height:11px"></i><i></i><i style="height:9px"></i><i style="height:12px"></i></div></div>
+      <div class="prod reveal"><span class="prod-code">ACI / MOD-07</span><h4>Executive Brief</h4><p>ملخص استخباراتي تنفيذي جاهز للإدارة.</p><div class="barcode"><i style="height:12px"></i><i style="height:9px"></i><i></i><i style="height:8px"></i><i style="height:11px"></i><i></i></div></div>
+      <div class="prod reveal" data-delay="70"><span class="prod-code">ACI / MOD-08</span><h4>Continuous Monitoring</h4><p>مراقبة مستمرة لشركة أو قطاع أو مجموعة كيانات.</p><div class="barcode"><i></i><i style="height:11px"></i><i></i><i style="height:12px"></i><i style="height:7px"></i><i></i></div></div>
+      <div class="prod reveal" data-delay="140"><span class="prod-code">ACI / MOD-09</span><h4>Intelligence Dashboard</h4><p>لوحة تحكم استخباراتية تفاعلية حية.</p><div class="barcode"><i style="height:10px"></i><i></i><i style="height:12px"></i><i style="height:9px"></i><i></i><i style="height:8px"></i></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ EDGE ═══════ -->
+<section id="edge">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">THE ACI EDGE // 10</div>
+      <h2 class="sec-title">ما الذي يميز <span class="gold-text">ACI؟</span></h2>
+    </div>
+    <div class="edge-grid">
+      <div class="card reveal"><div class="icon-box"><i class="fas fa-people-arrows"></i></div><h3>إنسان + ذكاء اصطناعي</h3><span class="srv-en">HUMAN + AI</span><p>الجمع بين عمق التحليل البشري وسرعة ودقة الأنظمة الذكية.</p></div>
+      <div class="card reveal" data-delay="80"><div class="icon-box"><i class="fas fa-sitemap"></i></div><h3>معمارية متعددة الوكلاء</h3><span class="srv-en">MULTI-AGENT</span><p>توزيع المهمة على وكلاء متخصصين ينسقون فيما بينهم.</p></div>
+      <div class="card reveal" data-delay="160"><div class="icon-box"><i class="fas fa-folder-open"></i></div><h3>استخبارات قائمة على الأدلة</h3><span class="srv-en">EVIDENCE-BASED</span><p>كل خلاصة مدعومة بأدلة ومصادر قابلة للتتبع.</p></div>
+      <div class="card reveal"><div class="icon-box"><i class="fas fa-arrows-rotate"></i></div><h3>استخبارات مستمرة</h3><span class="srv-en">CONTINUOUS</span><p>لا نكتفي بتقرير لمرة واحدة — المراقبة مستمرة ومتجددة.</p></div>
+      <div class="card reveal" data-delay="80"><div class="icon-box"><i class="fas fa-diagram-project"></i></div><h3>تحليل الكيانات والعلاقات</h3><span class="srv-en">ENTITY & RELATIONSHIP</span><p>تحليل العلاقات بين الأشخاص والشركات والأحداث والكيانات.</p></div>
+      <div class="card reveal" data-delay="160"><div class="icon-box"><i class="fas fa-file-lines"></i></div><h3>تقارير بمستوى تنفيذي</h3><span class="srv-en">EXECUTIVE REPORTING</span><p>تحويل التحليل التقني إلى معلومات مفهومة لصنّاع القرار.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ VALUES ═══════ -->
+<section id="values">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">CORE VALUES // 11</div>
+      <h2 class="sec-title">قيم <span class="gold-text">ACI</span></h2>
+    </div>
+    <div class="val-grid">
+      <div class="val reveal"><i class="fas fa-crosshairs"></i><b>الدقة</b><p>نبحث عن المعلومات القابلة للتحقق</p></div>
+      <div class="val reveal" data-delay="70"><i class="fas fa-scale-balanced"></i><b>الحياد</b><p>نفصل الحقائق عن التحليل والافتراضات</p></div>
+      <div class="val reveal" data-delay="140"><i class="fas fa-lock"></i><b>السرية</b><p>نحمي معلومات العملاء وبياناتهم</p></div>
+      <div class="val reveal" data-delay="210"><i class="fas fa-eye"></i><b>الشفافية</b><p>نوثق المصادر والأدلة قدر الإمكان</p></div>
+      <div class="val reveal" data-delay="280"><i class="fas fa-award"></i><b>الاحترافية</b><p>منهجيات منظمة وقابلة للتدقيق</p></div>
+      <div class="val reveal" data-delay="350"><i class="fas fa-lightbulb"></i><b>الابتكار</b><p>ذكاء اصطناعي وأتمتة وتحليل متقدم</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ REPORT MODEL ═══════ -->
+<section id="report">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">REPORT MODEL // 12</div>
+      <h2 class="sec-title">تشريح <span class="gold-text">تقرير ACI</span></h2>
+      <p class="sec-desc">كل تقرير يمر بهيكل استخباراتي صارم من الملخص التنفيذي حتى المصادر.</p>
+    </div>
+    <div class="terminal reveal">
+      <div class="term-bar"><i></i><i></i><i></i><span>ACI-INTELLIGENCE-REPORT v4.2 // CLASSIFIED</span></div>
+      <div class="term-body" id="termBody">
+        <div class="term-line"><span class="ln">01</span><span class="ten">EXECUTIVE SUMMARY</span><span class="tar">الملخص التنفيذي</span></div>
+        <div class="term-line"><span class="ln">02</span><span class="ten">INTELLIGENCE QUESTION</span><span class="tar">السؤال الاستخباراتي</span></div>
+        <div class="term-line"><span class="ln">03</span><span class="ten">SCOPE & METHODOLOGY</span><span class="tar">النطاق والمنهجية</span></div>
+        <div class="term-line"><span class="ln">04</span><span class="ten">KEY FINDINGS</span><span class="tar">النتائج الرئيسية</span></div>
+        <div class="term-line"><span class="ln">05</span><span class="ten">EVIDENCE</span><span class="tar">الأدلة</span></div>
+        <div class="term-line"><span class="ln">06</span><span class="ten">ENTITY ANALYSIS</span><span class="tar">تحليل الكيانات</span></div>
+        <div class="term-line"><span class="ln">07</span><span class="ten">RELATIONSHIP ANALYSIS</span><span class="tar">تحليل العلاقات</span></div>
+        <div class="term-line"><span class="ln">08</span><span class="ten">RISK INDICATORS</span><span class="tar">مؤشرات المخاطر</span></div>
+        <div class="term-line"><span class="ln">09</span><span class="ten">OPPORTUNITIES</span><span class="tar">الفرص</span></div>
+        <div class="term-line"><span class="ln">10</span><span class="ten">TIMELINE</span><span class="tar">الخط الزمني</span></div>
+        <div class="term-line"><span class="ln">11</span><span class="ten">CONFIDENCE ASSESSMENT</span><span class="tar">تقييم مستوى الثقة</span></div>
+        <div class="term-line"><span class="ln">12</span><span class="ten">INTELLIGENCE GAPS</span><span class="tar">الفجوات الاستخباراتية</span></div>
+        <div class="term-line"><span class="ln">13</span><span class="ten">APPENDICES & SOURCES</span><span class="tar">الملاحق والمصادر</span></div>
+        <div class="term-cursor" style="margin-top:12px">ACI://awaiting-mission</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ PLATFORM ═══════ -->
+<section id="platform">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">TECH VISION // 13</div>
+      <h2 class="sec-title">منصة <span class="gold-text">ACI Intelligence</span></h2>
+      <p class="sec-desc">لن تكون ACI مجرد مكتب تقارير — الهدف منصة واحدة تدير دورة الاستخبارات كاملة.</p>
+    </div>
+    <div class="merge-grid reveal">
+      <div class="merge-chip">OSINT</div>
+      <div class="merge-chip">ARTIFICIAL INTELLIGENCE</div>
+      <div class="merge-chip">DATA INTELLIGENCE</div>
+      <div class="merge-chip">CYBER INTELLIGENCE</div>
+      <div class="merge-chip">KNOWLEDGE GRAPH</div>
+      <div class="merge-chip">AUTOMATION</div>
+    </div>
+    <div class="merge-plus reveal"><i class="fas fa-level-down-alt"></i></div>
+    <div class="platform-core reveal" data-delay="120">
+      <h3>ACI INTELLIGENCE PLATFORM</h3>
+      <p>يُنشئ العميل <b>Intelligence Mission</b> — فتدير المنصة مراحل البحث والتحليل والتحقق وإنتاج التقرير، مع الاحتفاظ بسجل كامل للأدلة والمصادر.</p>
+      <div class="mission-flow">
+        <span>MISSION</span><i class="fas fa-arrow-right"></i>
+        <span>RESEARCH</span><i class="fas fa-arrow-right"></i>
+        <span>ANALYSIS</span><i class="fas fa-arrow-right"></i>
+        <span>VERIFICATION</span><i class="fas fa-arrow-right"></i>
+        <span>REPORT</span><i class="fas fa-arrow-right"></i>
+        <span>EVIDENCE LOG</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ EXPANSION ═══════ -->
+<section id="expansion">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">ROADMAP // 14</div>
+      <h2 class="sec-title">مسار <span class="gold-text">التوسع</span></h2>
+    </div>
+    <div class="exp-wrap reveal">
+      <div class="exp-line"></div>
+      <div class="exp-row">
+        <div class="exp-node"><div class="exp-dot"><i class="fas fa-location-dot"></i></div><b>بنها</b><small>BANHA // ORIGIN</small></div>
+        <div class="exp-node"><div class="exp-dot"><i class="fas fa-flag"></i></div><b>مصر</b><small>EGYPT</small></div>
+        <div class="exp-node"><div class="exp-dot"><i class="fas fa-globe-africa"></i></div><b>الشرق الأوسط</b><small>MENA</small></div>
+        <div class="exp-node"><div class="exp-dot"><i class="fas fa-earth"></i></div><b>العالم</b><small>GLOBAL</small></div>
+      </div>
+    </div>
+    <div class="future-chips reveal">
+      <span>Intelligence APIs</span><span>AI Agents</span><span>Intelligence Dashboard</span><span>Knowledge Graph</span>
+      <span>Automated Monitoring</span><span>Risk Scoring Frameworks</span><span>Corporate Intelligence Database</span><span>Intelligence-as-a-Service</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ SECTORS ═══════ -->
+<section id="sectors">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div class="sec-tag">TARGET SECTORS // 15</div>
+      <h2 class="sec-title">القطاعات <span class="gold-text">المستهدفة</span></h2>
+    </div>
+    <div class="sector-cloud reveal">
+      <div class="sector"><i class="fas fa-building"></i> الشركات الخاصة</div>
+      <div class="sector"><i class="fas fa-chart-pie"></i> المؤسسات الاستثمارية</div>
+      <div class="sector"><i class="fas fa-rocket"></i> الشركات الناشئة</div>
+      <div class="sector"><i class="fas fa-building-columns"></i> البنوك والخدمات المالية</div>
+      <div class="sector"><i class="fas fa-microchip"></i> شركات التكنولوجيا</div>
+      <div class="sector"><i class="fas fa-shield-halved"></i> شركات الأمن السيبراني</div>
+      <div class="sector"><i class="fas fa-ship"></i> الاستيراد والتصدير</div>
+      <div class="sector"><i class="fas fa-industry"></i> الشركات الصناعية</div>
+      <div class="sector"><i class="fas fa-city"></i> شركات العقارات</div>
+      <div class="sector"><i class="fas fa-scale-balanced"></i> مكاتب المحاماة والاستشارات</div>
+      <div class="sector"><i class="fas fa-radar"></i> شركات إدارة المخاطر</div>
+      <div class="sector"><i class="fas fa-flask"></i> المؤسسات البحثية</div>
+      <div class="sector"><i class="fas fa-user-tie"></i> المستثمرون ورجال الأعمال</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ CONTACT CTA ═══════ -->
+<section id="contact">
+  <div class="container">
+    <div class="cta-panel reveal">
+      <span class="cp-corner tl"></span><span class="cp-corner tr"></span><span class="cp-corner bl"></span><span class="cp-corner br"></span>
+      <div class="sec-tag">INITIATE MISSION // 16</div>
+      <h2>هل أنت مستعد <span class="gold-text">لرؤية أبعد؟</span></h2>
+      <p>ابدأ مهمتك الاستخباراتية الأولى اليوم — ودع منظومة ACI تحوّل أسئلتك إلى قرارات مبنية على الأدلة.</p>
+      <a href="mailto:info@amun-intelligence.com" class="btn solid"><i class="fas fa-satellite-dish"></i> اطلب استشارة استخباراتية</a>
+      <div class="cta-meta">
+        <div><b>RESPONSE TIME</b>خلال 24 ساعة</div>
+        <div><b>CONFIDENTIALITY</b>NDA قبل أي معلومة</div>
+        <div><b>COVERAGE</b>BANHA → EGYPT → MENA → GLOBAL</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════ FOOTER ═══════ -->
+<footer>
+  <div class="foot-grid">
+    <div class="foot-brand">
+      <img src="https://z-cdn-media.chatglm.cn/files/1f01e319-63c5-4c7c-873f-f27fdcc52b95.png?auth_key=1890389552-941dc7c4aa784cd7ab9cbb6a93f5a6d6-0-ef1e63e8f033a380867f573fd8e8d101" alt="AMUN">
+      <div>
+        <b>AMUN CORPORATE INTELLIGENCE</b>
+        <p>مؤسسة متخصصة في استخبارات الشركات والذكاء الاصطناعي متعدد الوكلاء — نحوّل المعلومات المفتوحة إلى قرارات.</p>
+        <p class="en" style="color:var(--gold);font-size:11px;margin-top:10px">INTELLIGENCE • INSIGHT • DECISION</p>
+      </div>
+    </div>
+    <div class="foot-col">
+      <h5>روابط سريعة</h5>
+      <a href="#about">من نحن</a>
+      <a href="#services">خدماتنا</a>
+      <a href="#products">المنتجات</a>
+      <a href="#platform">المنصة</a>
+      <a href="#contact">تواصل معنا</a>
+    </div>
+    <div class="foot-col">
+      <h5>القدرات</h5>
+      <span>Corporate Intelligence</span>
+      <span>OSINT & Due Diligence</span>
+      <span>Digital Risk Intelligence</span>
+      <span>Multi-Agent AI Systems</span>
+      <span>Decision Intelligence</span>
+    </div>
+  </div>
+  <div class="foot-bottom">
+    <span>جميع الحقوق محفوظة © 2025 AMUN Corporate Intelligence</span>
+    <span class="en">BANHA • EGYPT • MENA • GLOBAL</span>
+  </div>
+</footer>
+
+<script>
+/* ═══════════ PRELOADER ═══════════ */
+(function(){
+  const bar=document.getElementById('preBar'),pre=document.getElementById('preloader');
+  let p=0;const t=setInterval(()=>{p=Math.min(p+Math.random()*22,100);bar.style.width=p+'%';
+    if(p>=100){clearInterval(t);setTimeout(()=>pre.classList.add('done'),450);}},160);
+  window.addEventListener('load',()=>{bar.style.width='100%';});
+})();
+
+/* ═══════════ PARTICLE NETWORK ═══════════ */
+(function(){
+  const cv=document.getElementById('network'),ctx=cv.getContext('2d');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced)return;
+  let W,H,pts=[],mouse={x:-9e9,y:-9e9};
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;
+    const n=innerWidth<700?32:70;pts=[];
+    for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,r:Math.random()*1.6+.6});
+  }
+  addEventListener('resize',resize);resize();
+  addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    for(const p of pts){
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;
+      const dx=p.x-mouse.x,dy=p.y-mouse.y,d=Math.hypot(dx,dy);
+      if(d<130){p.x+=dx/d*.6;p.y+=dy/d*.6;}
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);
+      ctx.fillStyle='rgba(212,175,55,.65)';ctx.fill();
+    }
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const a=pts[i],b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<120){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(212,175,55,${(1-d/120)*.16})`;ctx.stroke();}
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ═══════════ CURSOR ═══════════ */
+(function(){
+  if(matchMedia('(pointer:coarse)').matches)return;
+  const dot=document.querySelector('.cursor-dot'),ring=document.querySelector('.cursor-ring');
+  let x=0,y=0,rx=0,ry=0;
+  addEventListener('mousemove',e=>{x=e.clientX;y=e.clientY;dot.style.left=x+'px';dot.style.top=y+'px';});
+  (function loop(){rx+=(x-rx)*.16;ry+=(y-ry)*.16;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();
+  document.querySelectorAll('a,button,.card,.sector,.prod,.val,.cnode,.agent').forEach(el=>{
+    el.addEventListener('mouseenter',()=>ring.classList.add('hovering'));
+    el.addEventListener('mouseleave',()=>ring.classList.remove('hovering'));
+  });
+})();
+
+/* ═══════════ NAV ═══════════ */
+(function(){
+  const nav=document.getElementById('nav'),burger=document.getElementById('burger'),links=document.getElementById('navLinks');
+  addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>40));
+  burger.addEventListener('click',()=>links.classList.toggle('open'));
+  links.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>links.classList.remove('open')));
+})();
+
+/* ═══════════ SCROLLSPY + REVEAL + COUNTERS ═══════════ */
+(function(){
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target);}}),{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>{
+    if(el.dataset.delay)el.style.transitionDelay=el.dataset.delay+'ms';
+    io.observe(el);
+  });
+  const spy=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){
+      document.querySelectorAll('.nav-links a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+e.target.id));
+    }}),{rootMargin:'-40% 0px -55% 0px'});
+  document.querySelectorAll('section[id],header[id]').forEach(s=>spy.observe(s));
+  const cio=new IntersectionObserver(es=>es.forEach(e=>{
+    if(!e.isIntersecting)return;cio.unobserve(e.target);
+    const el=e.target,t=+el.dataset.target,st=performance.now();
+    (function tick(now){const k=Math.min((now-st)/1400,1),ease=1-Math.pow(1-k,3);
+      el.textContent=Math.round(t*ease);if(k<1)requestAnimationFrame(tick);})(st);
+  }),{threshold:.6});
+  document.querySelectorAll('.counter').forEach(c=>cio.observe(c));
+})();
+
+/* ═══════════ TYPING ═══════════ */
+(function(){
+  const words=['CORPORATE INTELLIGENCE','OSINT','DUE DILIGENCE','RISK INTELLIGENCE','MARKET INTELLIGENCE','MULTI-AGENT AI','DECISION SUPPORT'];
+  const el=document.getElementById('typeTarget');let w=0,i=0,del=false;
+  (function type(){
+    const word=words[w];
+    el.textContent=word.slice(0,i);
+    if(!del&&i<word.length){i++;setTimeout(type,70);}
+    else if(!del){del=true;setTimeout(type,1600);}
+    else if(i>0){i--;setTimeout(type,35);}
+    else{del=false;w=(w+1)%words.length;setTimeout(type,300);}
+  })();
+})();
+
+/* ═══════════ INTELLIGENCE CYCLE RADAR ═══════════ */
+(function(){
+  const steps=[
+    {en:'DEFINE',ar:'تحديد السؤال الاستخباراتي',short:'تحديد',desc:'كل مهمة تبدأ بسؤال دقيق: ماذا نريد أن نعرف؟ ولماذا؟ وبأي نطاق؟'},
+    {en:'COLLECT',ar:'جمع البيانات والمعلومات',short:'جمع',desc:'جمع البيانات والمعلومات ذات الصلة من المصادر المفتوحة والمتاحة قانونيًا.'},
+    {en:'VALIDATE',ar:'التحقق من المصادر',short:'تحقق',desc:'التحقق من المصادر والمعلومات قبل الاعتماد عليها — لا معلومة بلا مصدر موثق.'},
+    {en:'PROCESS',ar:'معالجة وتنظيم البيانات',short:'معالجة',desc:'تنظيم وتطبيع البيانات وتحويلها إلى صيغة موحدة قابلة للتحليل.'},
+    {en:'CORRELATE',ar:'ربط الكيانات والعلاقات',short:'ربط',desc:'ربط الكيانات والعلاقات والأحداث في سياق واحد لبناء الصورة الكاملة.'},
+    {en:'ANALYZE',ar:'تحليل الأنماط والمخاطر',short:'تحليل',desc:'تحليل الأنماط والمؤشرات والمخاطر واستخراج الدلالات ذات الصلة بالقرار.'},
+    {en:'PRODUCE',ar:'إنتاج التقرير الاستخباراتي',short:'إنتاج',desc:'إنتاج Intelligence Report متكامل جاهز لصناعة القرار مع مستوى الثقة.'},
+    {en:'MONITOR',ar:'المراقبة المستمرة',short:'مراقبة',desc:'مراقبة مستمرة وتحديث النتائج كلما تغيّر المشهد — الاستخبارات عملية حية.'}
+  ];
+  const radar=document.getElementById('radar');
+  const nodes=steps.map((s,i)=>{
+    const b=document.createElement('button');b.className='cnode';
+    b.innerHTML=`<div class="cn-dot">${String(i+1).padStart(2,'0')}</div><div class="cn-label">${s.short}</div>`;
+    b.addEventListener('click',()=>{select(i);restart();});
+    radar.appendChild(b);return b;
+  });
+  function layout(){
+    const S=radar.clientWidth,R=S*.435;
+    nodes.forEach((n,i)=>{
+      const a=(-90+i*45)*Math.PI/180;
+      n.style.left=(S/2+R*Math.cos(a))+'px';n.style.top=(S/2+R*Math.sin(a))+'px';
+    });
+  }
+  addEventListener('resize',layout);layout();
+  let cur=0,playing=true,timer;
+  const bar=document.getElementById('cpBar');
+  function paint(){
+    nodes.forEach((n,i)=>n.classList.toggle('active',i===cur));
+    document.getElementById('cpStep').textContent=`STEP ${String(cur+1).padStart(2,'0')} / 08`;
+    document.getElementById('cpEn').textContent=steps[cur].en;
+    document.getElementById('cpAr').textContent=steps[cur].ar;
+    document.getElementById('cpDesc').textContent=steps[cur].desc;
+  }
+  function runBar(){
+    bar.style.transition='none';bar.style.width='0%';void bar.offsetWidth;
+    bar.style.transition='width 3s linear';bar.style.width='100%';
+  }
+  function restart(){clearInterval(timer);runBar();timer=setInterval(()=>{if(playing){cur=(cur+1)%8;paint();runBar();}},3000);}
+  function select(i){cur=i;paint();}
+  document.getElementById('cpNext').addEventListener('click',()=>{cur=(cur+1)%8;select(cur);restart();});
+  document.getElementById('cpPrev').addEventListener('click',()=>{cur=(cur+7)%8;select(cur);restart();});
+  document.getElementById('cpPlay').addEventListener('click',function(){
+    playing=!playing;this.innerHTML=playing?'<i class="fas fa-pause"></i>':'<i class="fas fa-play"></i>';
+  });
+  paint();restart();
+})();
+
+/* ═══════════ CHAIN AUTO-FLOW ═══════════ */
+(function(){
+  const nodes=document.querySelectorAll('#chain .chain-node');let i=0;
+  setInterval(()=>{nodes.forEach(n=>n.classList.remove('active'));nodes[i].classList.add('active');i=(i+1)%nodes.length;},1100);
+})();
+
+/* ═══════════ AGENT ORBIT ═══════════ */
+(function(){
+  const sys=document.getElementById('orbitSys'),svg=document.getElementById('orbitLinks');
+  const agents=[...sys.querySelectorAll('.agent')];
+  function layout(){
+    const S=sys.clientWidth;svg.setAttribute('viewBox',`0 0 ${S} ${S}`);
+    let lines='';
+    agents.forEach((el,i)=>{
+      el.style.animationDelay=(i*.4)+'s';
+      const ring=el.dataset.ring,idx=+el.dataset.i,R=S*(ring==='1'?.315:.478);
+      const a=(-90+idx*72+(ring==='2'?36:0))*Math.PI/180;
+      const x=S/2+R*Math.cos(a),y=S/2+R*Math.sin(a);
+      el.style.left=x+'px';el.style.top=y+'px';
+      lines+=`<line x1="${S/2}" y1="${S/2}" x2="${x}" y2="${y}"/>`;
+    });
+    svg.innerHTML=lines;
+  }
+  addEventListener('resize',layout);layout();
+})();
+
+/* ═══════════ TERMINAL TYPED LINES ═══════════ */
+(function(){
+  const lines=document.querySelectorAll('#termBody .term-line');
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(!e.isIntersecting)return;io.unobserve(e.target);
+    lines.forEach((l,i)=>setTimeout(()=>l.classList.add('show'),i*160));
+  }),{threshold:.3});
+  io.observe(document.getElementById('termBody'));
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Microsoft Agent Framework Declarative Workflows 1.0 + Oct 2026 framework version roundup
+
+**Date:** 2026-10-16 (Declarative Workflows 1.0 article 2026-10-09; versions as of ~2026-10-12)
+**Sources:** https://az365.ai/blog/microsoft-agent-framework-declarative-workflows/ (secondary, 2026-10-09); https://dreaming.press/posts/ai-agent-frameworks-whats-changed-fall-2026.html (secondary roundup); https://www.morphllm.com/ai-agent-framework (secondary version table)
+
+## What changed
+- **Microsoft Agent Framework Declarative Workflows 1.0**: orchestration moves out of app code into versioned, reviewable YAML. The article's recommendation: new Azure-based agent projects should start declarative-first and escape to code only when the workflow genuinely demands it; treat orchestration like infrastructure (declarative, versioned, reviewable). Caveats: the declarative surface is new — expect schema evolution, thin edge-case docs, and gaps; pilot on a workflow you can afford to rework. If you have a stable LangGraph/CrewAI investment, a rewrite buys little today.
+- **Version roundup (mid-Oct 2026):** LangGraph 1.2.14 (6 Oct), CrewAI 1.15.27 (9 Oct), Agno 3.1.2 (8 Oct, repositioned from library to "platform"), Pydantic AI 2.55.0 (9 Oct, already tracked; 2.56.0 tracked 2026-10-14), Google ADK 2.11.0 (2 Oct), OpenAI Agents SDK Python 0.23.1 (2 Oct) / TS 0.20.0 (8 Oct, already tracked), MS Agent Framework Python 1.21.0 (8 Oct, already tracked), Claude Agent SDK Python 0.2.165 (8 Oct) / TS 0.3.296 (9 Oct), Mastra @mastra/core 1.76.0 (11 Oct), LlamaIndex repositioned toward "document processing platform for AI" (data/RAG agents). AutoGen: no feature commit since April (maintenance mode — reconfirmed). Semantic Kernel not listed for new work; Agent Framework is its successor.
+- PyPI download signal (month to 1 Oct 2026): langchain 169.4M, langgraph 43.7M, strands-agents 36.5M, claude-agent-sdk 28.9M, openai-agents 12.1M, google-adk 9.9M, llama-index-core 6.6M, pydantic-ai 5.3M, dspy 5.2M, crewai 2.4M, agno 1.7M, agent-framework-core 0.92M (CI installs inflate these; read as relative signals).
+
+## Why it matters for ACI
+ACI's orchestrator is a hand-rolled Python module implementing the 5 patterns. The Declarative Workflows 1.0 idea — orchestration as a versioned, reviewable artifact — is directly portable: ACI mission templates should be declarative YAML/JSON (already the direction), with code as the escape hatch, so a mission's routing/approval logic is auditable without reading code. The roundup reconfirms the standing positions: AutoGen stays retired, Agent Framework stays the MS-stack migration candidate, LangGraph stays the default for stateful orchestration. Mastra (TS-first, weekly cadence) is newly notable only if ACI ever adds a TS service — it doesn't.
+
+## Action
+**Adopt (pattern only):** keep ACI mission orchestration declarative-first (templates as reviewable artifacts, code as escape hatch). **Watch:** framework versions; no framework migration — the hand-rolled orchestrator stays.

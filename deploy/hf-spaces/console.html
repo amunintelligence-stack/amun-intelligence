@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACI — منصة المهام الاستخباراتية</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:#050508;color:#eae7df;min-height:100vh;padding:30px 16px}
+.wrap{max-width:760px;margin:0 auto}
+h1{color:#d4af37;font-size:24px;margin-bottom:6px}
+.sub{color:#95917f;font-size:14px;margin-bottom:26px}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(212,175,55,.25);border-radius:6px;padding:24px;margin-bottom:18px}
+label{display:block;font-size:13px;color:#95917f;margin-bottom:6px}
+select,input{width:100%;background:#0a0a12;border:1px solid rgba(212,175,55,.35);color:#eae7df;padding:12px;border-radius:4px;font-size:15px;margin-bottom:16px}
+button{background:linear-gradient(120deg,#a87f16,#d4af37);border:none;color:#0a0a08;font-weight:800;font-size:16px;padding:13px 40px;border-radius:4px;cursor:pointer;width:100%}
+button:disabled{opacity:.5;cursor:wait}
+#out{white-space:pre-wrap;font-size:14px;line-height:1.9;background:#0a0a12;border:1px solid rgba(212,175,55,.25);border-radius:6px;padding:20px;min-height:120px}
+.sec{color:#d4af37;font-weight:800;margin-top:14px}
+.err{color:#ff7b7b}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🛡️ ACI — منصة المهام الاستخباراتية</h1>
+  <div class="sub">AMUN Corporate Intelligence — ابدأ مهمة فحص مباشرة</div>
+  <div class="card">
+    <label>نوع المهمة</label>
+    <select id="mission">
+      <option value="corporate">استخبارات الشركات</option>
+      <option value="due_diligence">الفحص النافي للجهالة</option>
+      <option value="competitive">استخبارات المنافسين</option>
+      <option value="market">استخبارات الأسواق</option>
+      <option value="risk">استخبارات المخاطر</option>
+      <option value="cyber">الاستخبارات السيبرانية</option>
+    </select>
+    <label>الهدف (اسم الشركة أو النطاق)</label>
+    <input id="target" placeholder="مثال: example.com" />
+    <button id="go" onclick="run()">🚀 ابدأ المهمة</button>
+  </div>
+  <div id="out">بانتظار المهمة…</div>
+</div>
+<script>
+async function run(){
+  const m=document.getElementById('mission').value;
+  const t=document.getElementById('target').value.trim();
+  const out=document.getElementById('out');
+  const btn=document.getElementById('go');
+  if(!t){out.innerHTML='<span class="err">اكتب الهدف الأول</span>';return;}
+  btn.disabled=true; out.textContent='⏳ جاري تنفيذ المهمة… (قد تستغرق ~30 ثانية)';
+  try{
+    const r=await fetch('/api/v1/run',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mission:m,target:t})});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.detail||'خطأ');
+    const sec=(t2,v)=>'\n<span class="sec">'+t2+'</span>\n'+(Array.isArray(v)?v.map(x=>'• '+x).join('\n'):v);
+    out.innerHTML='🎯 '+d.mission_label+' — '+d.target+'\nالثقة: '+d.confidence+' | المدة: '+d.elapsed_s+' ث'
+      +sec('📌 الوضع',d.situation)+sec('🧾 الأدلة',d.evidence)
+      +sec('⚠️ المخاطر',d.risk)+sec('💡 الفرص',d.opportunity)+sec('🧭 الخيارات',d.options);
+  }catch(e){out.innerHTML='<span class="err">فشل: '+e.message+'</span>';}
+  btn.disabled=false;
+}
+</script>
+</body>
+</html>
