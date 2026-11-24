@@ -4,6 +4,8 @@
 # 2026-10-08). If postgres is missing we start DEGRADED but say so loudly.
 LOGDIR=/home/hatch/workspace/aci/logs
 mkdir -p "$LOGDIR"
+# Supabase (AMUN) connection: optional .env file (600 perms, never committed).
+if [ -f /home/hatch/workspace/aci/.env ]; then set -a; . /home/hatch/workspace/aci/.env; set +a; fi
 if command -v pg_ctlcluster >/dev/null 2>&1; then
   pg_ctlcluster 16 main status >/dev/null 2>&1 || pg_ctlcluster 16 main start >>"$LOGDIR/postgres-start.log" 2>&1
 else

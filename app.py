@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent
 import os as _os
 import sqlite3 as _sqlite3
 
-DB_DSN = "dbname=aci user=aci password=aci_local host=127.0.0.1"
+DB_DSN = _os.environ.get("ACI_DB_DSN", "dbname=aci user=aci password=aci_local host=127.0.0.1")
 SQLITE_PATH = _os.environ.get("ACI_DB_PATH", str(BASE_DIR / "data" / "aci.db"))
 _db_ok = False
 _db_kind = "memory"  # postgres | sqlite | memory
